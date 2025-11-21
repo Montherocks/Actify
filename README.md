@@ -109,38 +109,46 @@ Actify/
 </p>
 
 
-## ⚙️ Configuration
 
-### 🗄️ Database Configuration
-Edit `backend/src/main/resources/application.properties`:
-```properties
-# PostgreSQL Connection
-spring.datasource.url=jdbc:postgresql://localhost:5432/actify_db
-spring.datasource.username=postgres
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=validate
+## 💡 API Endpoints
 
-# Server Settings
-server.port=8081
+<p align="center">
+  <img src="https://img.shields.io/badge/REST-API-green?style=flat-square" alt="REST API"/>
+  <img src="https://img.shields.io/badge/Base%20URL-localhost%3A8081%2Fapi-blue?style=flat-square" alt="Base URL"/>
+</p>
 
-# JWT Configuration  
-jwt.secret=your-secret-key
-jwt.expiration=86400000
-```
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| 🔐 `POST` | `/auth/login` | User authentication | ❌ No |
+| 📝 `POST` | `/auth/register` | User registration | ❌ No |
+| 🎯 `GET` | `/events` | List all events | ✅ Yes |
+| ➕ `POST` | `/events/{id}/register` | Register for event | ✅ Yes |
+| 👤 `GET` | `/users/profile` | Get user profile | ✅ Yes |
+| 📊 `GET` | `/leaderboard` | Top volunteers | ✅ Yes |
 
-> 📖 See `database/README.md` for backup, restore, and maintenance commands.
+---
 
-### 🌐 Frontend Configuration
-Edit `frontend/app.js`:
-```javascript
-// API Base URL Configuration
-const API_BASE_URL = 'http://localhost:8081/api';
+## 🏗️ Database Schema
 
-// Map Configuration
-const MAP_CENTER = [40.7128, -74.0060]; // New York City
-const MAP_ZOOM = 12;
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/Tables-8-blue?style=flat-square" alt="Tables"/>
+  <img src="https://img.shields.io/badge/Relations-Fully%20Normalized-green?style=flat-square" alt="Relations"/>
+</p>
 
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| 👥 **users** | Volunteer profiles & stats | `firstName`, `lastName`, `volunteerPoints`, `eventsCompleted` |
+| 🏢 **organizations** | Non-profit organizations | `name`, `description`, `contactInfo` |
+| 🎯 **events** | Volunteer opportunities | `title`, `description`, `location`, `rewardPoints` |
+| ✅ **event_registrations** | User event signups | `userId`, `eventId`, `registrationDate`, `status` |
+| 🏆 **badges** | Achievement badges | `name`, `description`, `criteria`, `icon` |
+| 🎁 **rewards** | Redeemable rewards | `name`, `pointsCost`, `description`, `availability` |
+| 💰 **reward_redemptions** | Redemption history | `userId`, `rewardId`, `redemptionDate`, `status` |
+| 🔔 **notifications** | User notifications | `userId`, `message`, `type`, `readStatus` |
+
+> 📊 Run `database/queries.sql` for useful analytics and reporting queries!
+
+---
 
 ## 🤝 Contributing
 
