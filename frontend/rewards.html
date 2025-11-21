@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/rewards.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body style="background: var(--background);">
     <!-- Navigation -->
     <nav class="nav-logged-in">
         <div class="nav-container">
@@ -40,10 +40,12 @@
 
             <div class="nav-user">
                 <div class="user-coins">
-                    <span class="coin-value">2,850</span>
-                    <span class="coin-label">coins</span>
+                    <span class="coin-value">0</span>
                 </div>
-                <div class="user-avatar">A</div>
+                <span class="coin-icon">🪙</span>
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="user-avatar" style="cursor: pointer;">A</div>
+                </a>
             </div>
         </div>
 
@@ -71,134 +73,166 @@
     <!-- Main Content -->
     <main class="main-container">
         <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Redeem Your Rewards</h1>
-            <p class="page-subtitle">Exchange your Volunteer Points for amazing rewards</p>
-        </div>
-
-        <!-- User Points Banner -->
-        <div style="background: linear-gradient(to right, var(--emerald-600), var(--emerald-700)); border-radius: var(--radius-lg); padding: 2rem; color: white; text-align: center; margin-bottom: 2rem;">
-            <p style="font-size: 0.875rem; margin-bottom: 0.5rem; color: var(--emerald-100);">Your Available Points</p>
-            <h2 style="font-size: 3rem; font-weight: 700;">2,850</h2>
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Redeem Your Rewards</h1>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Spend your Impact Coins on amazing rewards</p>
+            
+            <!-- Coin Display Card -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; display: inline-flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; border-radius: 50%; background: linear-gradient(135deg, var(--emerald-400), var(--emerald-600)); display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="coins" style="width: 1.25rem; height: 1.25rem; color: white;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Impact Coins</p>
+                    <p style="font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--emerald-600);">2,850</p>
+                </div>
+            </div>
         </div>
 
         <!-- Rewards Grid -->
-        <div class="events-grid" id="rewardsGrid">
-            <!-- Gift Cards -->
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">🎁</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">$10 Amazon Gift Card</h3>
-                    <p class="event-description">Redeem your points for a $10 Amazon gift card. Shop for anything you want!</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">1,000</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
+            <!-- Coffee Gift Card -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">☕</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Coffee Shop Gift Card</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">$25 voucher for your favorite café</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">500</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">☕</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">$5 Starbucks Gift Card</h3>
-                    <p class="event-description">Enjoy your favorite coffee on us! Redeem for a Starbucks gift card.</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">500</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+            <!-- Movie Tickets -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Movie Theater Discount</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">2 free movie tickets</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">400</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">🍕</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">$15 Restaurant Voucher</h3>
-                    <p class="event-description">Treat yourself to a delicious meal at participating restaurants.</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">1,500</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+            <!-- Digital Certificate -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📜</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Digital Certificate</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Certificate of Impact recognition</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">300</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
                 </div>
             </div>
 
-            <!-- Certificates -->
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">📜</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">Volunteer Certificate</h3>
-                    <p class="event-description">Official certificate recognizing your volunteer contributions.</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">300</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+            <!-- Bookstore Gift Card -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Bookstore Gift Card</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">$30 voucher for books and more</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">600</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">🎬</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">Movie Tickets (2)</h3>
-                    <p class="event-description">Enjoy a movie night with two complimentary tickets.</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">800</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+            <!-- Fitness Class Pass -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🧘</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Fitness Class Pass</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">10 free yoga or fitness classes</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">800</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
                 </div>
             </div>
 
-            <div class="event-card">
-                <div class="event-image" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem;">👕</div>
-                </div>
-                <div class="event-content">
-                    <h3 class="event-title">Volunteer T-Shirt</h3>
-                    <p class="event-description">Show your volunteer pride with an official branded t-shirt.</p>
-                    <div class="event-footer">
-                        <div class="event-coins">
-                            <i data-lucide="zap" class="icon-sm"></i>
-                            <span class="coins-amount">600</span>
-                            <span class="coins-text">points</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm">Redeem</button>
+            <!-- Premium Badge -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; transition: all 0.2s; cursor: pointer;" 
+                 onmouseover="this.style.borderColor='var(--emerald-500)'" 
+                 onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+                <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem; color: var(--text-primary);">Premium Badge</h3>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">Exclusive digital badge on your profile</p>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--emerald-600);">1000</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">coins</span>
                     </div>
+                    <button class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="gift" style="width: 1rem; height: 1rem;"></i>
+                        Redeem
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary);">How Rewards Work</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">1. Volunteer</div>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Register and complete volunteer events in your community.</p>
+                </div>
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">2. Earn Coins</div>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Each event completion awards you Impact Coins based on impact.</p>
+                </div>
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">3. Redeem</div>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Use your coins to redeem rewards from our marketplace.</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script src="app.js"></script>
+    <script src="app.js"></script>
     <script>
         lucide.createIcons();
+        // Initialize user data
+        updateUserCoins();
+        updateUserAvatar();
     </script>
 </body>
 </html>

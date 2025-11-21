@@ -16,13 +16,21 @@
                 <div class="brand-icon">A</div>
                 <span class="brand-name">Actify</span>
             </div>
-            <div class="nav-links">
+            <div class="nav-links" id="navLinks">
                 <a href="dashboard.html" class="nav-link">Dashboard</a>
                 <a href="events.html" class="nav-link">Events</a>
-                <a href="login.html" class="nav-link">Sign In</a>
-                <a href="register.html">
+                <!-- Public links (hidden when logged in) -->
+                <a href="login.html" class="nav-link" id="signInLink">Sign In</a>
+                <a href="register.html" id="getStartedLink">
                     <button class="btn btn-primary btn-sm">Get Started</button>
                 </a>
+                <!-- User info when logged in (hidden by default) -->
+                <div id="userInfo" style="display: none; align-items: center; gap: 0.75rem;">
+                    <span id="userGreeting" style="font-size: 0.875rem; color: var(--text-primary);">Hi, User</span>
+                    <a href="profile.html" style="text-decoration: none;">
+                        <div class="user-avatar" style="cursor: pointer; width: 2rem; height: 2rem; border-radius: 50%; background: var(--emerald-500); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">A</div>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -192,14 +200,14 @@
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-brand">
-                <div class="brand-icon">V</div>
-                <span class="brand-name">Volu</span>
+                <div class="brand-icon">A</div>
+                <span class="brand-name">Actify</span>
             </div>
             <p class="footer-tagline">
                 Empowering communities through action. Making impact together.
             </p>
             <div class="footer-bottom">
-                <p class="footer-copy">© 2025 Volu</p>
+                <p class="footer-copy">© 2025 Actify</p>
                 <div class="footer-links">
                     <a href="#" class="footer-link">Privacy</a>
                     <a href="#" class="footer-link">Terms</a>
@@ -213,6 +221,29 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+        
+        // Check if user is logged in and update navbar
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (user && user.name) {
+                // Hide Sign In and Get Started links
+                const signInLink = document.getElementById('signInLink');
+                const getStartedLink = document.getElementById('getStartedLink');
+                const userInfo = document.getElementById('userInfo');
+                const userGreeting = document.getElementById('userGreeting');
+                const userAvatar = document.querySelector('#userInfo .user-avatar');
+                
+                if (signInLink) signInLink.style.display = 'none';
+                if (getStartedLink) getStartedLink.style.display = 'none';
+                if (userInfo) userInfo.style.display = 'flex';
+                if (userGreeting) {
+                    // Extract first name for greeting
+                    const firstName = user.name.split(' ')[0];
+                    userGreeting.textContent = `Hi, ${firstName}`;
+                }
+                if (userAvatar) userAvatar.textContent = user.name.charAt(0).toUpperCase();
+            }
+        });
     </script>
 </body>
 </html>

@@ -79,6 +79,18 @@ function checkAuth() {
 // ===== API Helper Functions =====
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem('token');
+    
+    // Handle demo mode
+    if (token === 'demo-token-12345') {
+        // Return mock response for demo mode
+        const mockUser = JSON.parse(localStorage.getItem('user') || '{}');
+        return {
+            ok: true,
+            json: async () => mockUser,
+            status: 200
+        };
+    }
+    
     const headers = {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -105,25 +117,50 @@ async function fetchWithAuth(url, options = {}) {
 async function loadDashboardData() {
     try {
         checkAuth();
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
         
-        // Update user name
-        const userNameEl = document.getElementById('userName');
-        if (userNameEl) {
-            userNameEl.textContent = user.name || 'User';
-        }
-
-        // Fetch user profile data
+        // Fetch fresh user profile data from backend
         const profileResponse = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
         if (profileResponse.ok) {
             const profileData = await profileResponse.json();
+            
+            // Update localStorage with fresh data
+            const updatedUser = {
+                id: profileData.id,
+                firstName: profileData.firstName,
+                lastName: profileData.lastName,
+                name: `${profileData.firstName} ${profileData.lastName}`,
+                email: profileData.email,
+                volunteerPoints: profileData.volunteerPoints,
+                eventsCompleted: profileData.eventsCompleted,
+                volunteerHours: profileData.volunteerHours,
+                phone: profileData.phone,
+                country: profileData.country,
+                city: profileData.city,
+                neighborhood: profileData.neighborhood,
+                interests: profileData.interests
+            };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            
+            // Update dynamic greeting with full name
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) {
+                userNameEl.textContent = `${profileData.firstName} ${profileData.lastName}`;
+            }
+            
             updateDashboardUI(profileData);
         } else {
+            // Fallback to localStorage data if API fails
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userNameEl = document.getElementById('userName');
+            if (userNameEl) {
+                userNameEl.textContent = user.name || user.firstName + ' ' + user.lastName || user.email?.split('@')[0] || 'User';
+            }
+            
             // Use mock data if API fails
             updateDashboardUI({
-                volunteerPoints: 3450,
-                eventsCompleted: 18,
-                hoursVolunteered: 72,
+                volunteerPoints: user.volunteerPoints || 2850,
+                eventsCompleted: user.eventsCompleted || 12,
+                volunteerHours: user.volunteerHours || 48,
                 badges: ["First Steps", "Community Hero", "Green Guardian"]
             });
         }
@@ -245,15 +282,107 @@ function getCurrentUser() {
 
 function updateUserCoins() {
     const user = getCurrentUser();
-    if (user && user.volunteerPoints) {
-        const coinElements = document.querySelectorAll('.coin-value');
-        coinElements.forEach(el => {
-            el.textContent = user.volunteerPoints.toLocaleString();
+    const coinElements = document.querySelectorAll('.coin-value');
+    // Show 0 if user has no coin data
+    const coins = (user && user.volunteerPoints) ? user.volunteerPoints : 0;
+    coinElements.forEach(el => {
+        el.textContent = coins.toLocaleString();
+    });
+}
+
+function updateUserAvatar() {
+    const user = getCurrentUser();
+    const avatarElements = document.querySelectorAll('.user-avatar');
+    if (user && user.name) {
+        avatarElements.forEach(el => {
+            el.textContent = user.name.charAt(0).toUpperCase();
         });
     }
 }
 
-// Initialize user coins on page load
+// ===== Profile Page Functions =====
+async function loadProfileData() {
+    try {
+        checkAuth();
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Update profile name and email
+        const profileNameEl = document.getElementById('profileName');
+        const profileEmailEl = document.getElementById('profileEmail');
+        
+        if (profileNameEl) {
+            profileNameEl.textContent = user.name || 'User';
+        }
+        if (profileEmailEl) {
+            profileEmailEl.textContent = user.email || 'user@actify.app';
+        }
+        
+        // Fetch user profile data
+        const profileResponse = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
+        if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            updateProfileUI(profileData);
+        } else {
+            // Use mock data if API fails
+            updateProfileUI({
+                volunteerPoints: 3450,
+                eventsCompleted: 18,
+                hoursVolunteered: 72,
+                badges: 5
+            });
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        // Use mock data
+        updateProfileUI({
+            volunteerPoints: 3450,
+            eventsCompleted: 18,
+            hoursVolunteered: 72,
+            badges: 5
+        });
+    }
+}
+
+function updateProfileUI(data) {
+    // Update stats
+    const elements = {
+        totalPoints: document.getElementById('totalPoints'),
+        eventsCompleted: document.getElementById('eventsCompleted'),
+        eventsAttended: document.getElementById('eventsAttended'),
+        hoursVolunteered: document.getElementById('hoursVolunteered'),
+        hoursContributed: document.getElementById('hoursContributed'),
+        badgesEarned: document.getElementById('badgesEarned')
+    };
+    
+    if (elements.totalPoints) elements.totalPoints.textContent = data.volunteerPoints?.toLocaleString() || '0';
+    if (elements.eventsCompleted) elements.eventsCompleted.textContent = data.eventsCompleted || '0';
+    if (elements.eventsAttended) elements.eventsAttended.textContent = data.eventsCompleted || '0';
+    if (elements.hoursVolunteered) elements.hoursVolunteered.textContent = data.hoursVolunteered || '0';
+    if (elements.hoursContributed) elements.hoursContributed.textContent = data.hoursVolunteered || '0';
+    if (elements.badgesEarned) elements.badgesEarned.textContent = data.badges || '0';
+    
+    // Update progress bars
+    const eventProgress = Math.min((data.eventsCompleted || 0) / 10 * 100, 100);
+    const timeProgress = Math.min((data.hoursVolunteered || 0) / 50 * 100, 100);
+    const badgeProgress = Math.min((data.badges || 0) / 15 * 100, 100);
+    
+    const eventProgressBar = document.getElementById('eventProgressBar');
+    const timeProgressBar = document.getElementById('timeProgressBar');
+    const badgeProgressBar = document.getElementById('badgeProgressBar');
+    const eventProgressText = document.getElementById('eventProgress');
+    const timeProgressText = document.getElementById('timeProgress');
+    const badgeProgressText = document.getElementById('badgeProgress');
+    
+    if (eventProgressBar) eventProgressBar.style.width = eventProgress + '%';
+    if (timeProgressBar) timeProgressBar.style.width = timeProgress + '%';
+    if (badgeProgressBar) badgeProgressBar.style.width = badgeProgress + '%';
+    if (eventProgressText) eventProgressText.textContent = `${data.eventsCompleted || 0}/10 events`;
+    if (timeProgressText) timeProgressText.textContent = `${data.hoursVolunteered || 0}/50 hours`;
+    if (badgeProgressText) badgeProgressText.textContent = `${data.badges || 0}/15 badges`;
+}
+
+// Initialize user data on page load
 document.addEventListener('DOMContentLoaded', () => {
     updateUserCoins();
+    updateUserAvatar();
 });

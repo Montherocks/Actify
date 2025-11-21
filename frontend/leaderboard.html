@@ -40,10 +40,12 @@
 
             <div class="nav-user">
                 <div class="user-coins">
-                    <span class="coin-value">2,850</span>
-                    <span class="coin-label">coins</span>
+                    <span class="coin-value">0</span>
                 </div>
-                <div class="user-avatar">A</div>
+                <span class="coin-icon">🪙</span>
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="user-avatar" style="cursor: pointer;">A</div>
+                </a>
             </div>
         </div>
 
@@ -90,19 +92,24 @@
 
         // Sample leaderboard data
         const SAMPLE_LEADERBOARD = [
-            { rank: 1, name: "Sarah Chen", points: 8450, events: 42 },
-            { rank: 2, name: "Marcus Johnson", points: 7230, events: 38 },
-            { rank: 3, name: "Emma Davis", points: 6890, events: 35 },
-            { rank: 4, name: "Alex Thompson", points: 3450, events: 18, isCurrentUser: true },
-            { rank: 5, name: "Jordan Lee", points: 2980, events: 15 },
-            { rank: 6, name: "Taylor Swift", points: 2750, events: 14 },
-            { rank: 7, name: "Chris Brown", points: 2450, events: 12 },
-            { rank: 8, name: "Kim Park", points: 2100, events: 11 },
-            { rank: 9, name: "Sam Wilson", points: 1890, events: 9 },
-            { rank: 10, name: "Riley Cooper", points: 1650, events: 8 }
+            { rank: 1, name: "Sarah Chen", email: "sarah@actify.app", points: 8450, events: 42 },
+            { rank: 2, name: "Marcus Johnson", email: "marcus@actify.app", points: 7230, events: 38 },
+            { rank: 3, name: "Emma Davis", email: "emma@actify.app", points: 6890, events: 35 },
+            { rank: 4, name: "Jordan Lee", email: "jordan@actify.app", points: 2980, events: 15 },
+            { rank: 5, name: "Taylor Swift", email: "taylor@actify.app", points: 2750, events: 14 },
+            { rank: 6, name: "Chris Brown", email: "chris@actify.app", points: 2450, events: 12 },
+            { rank: 7, name: "Kim Park", email: "kim@actify.app", points: 2100, events: 11 },
+            { rank: 8, name: "Sam Wilson", email: "sam@actify.app", points: 1890, events: 9 },
+            { rank: 9, name: "Riley Cooper", email: "riley@actify.app", points: 1650, events: 8 }
         ];
 
         function renderLeaderboard() {
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const currentUserEmail = currentUser.email;
+            
+            // Check if current user is in leaderboard
+            const userInLeaderboard = SAMPLE_LEADERBOARD.find(u => u.email === currentUserEmail);
+            
             const table = document.getElementById('leaderboardTable');
             table.innerHTML = `
                 <div class="leaderboard-header">
@@ -112,7 +119,7 @@
                     <div class="lb-col-events">Events</div>
                 </div>
                 ${SAMPLE_LEADERBOARD.map(user => `
-                    <div class="leaderboard-row ${user.isCurrentUser ? 'current-user' : ''}">
+                    <div class="leaderboard-row ${user.email === currentUserEmail ? 'current-user' : ''}">
                         <div class="lb-col-rank">
                             <span class="rank-badge ${user.rank <= 3 ? 'rank-top' : ''}">#${user.rank}</span>
                         </div>
@@ -120,7 +127,7 @@
                             <div class="user-info">
                                 <div class="user-avatar-sm">${user.name.charAt(0)}</div>
                                 <span>${user.name}</span>
-                                ${user.isCurrentUser ? '<span class="you-badge">You</span>' : ''}
+                                ${user.email === currentUserEmail ? '<span class="you-badge">You</span>' : ''}
                             </div>
                         </div>
                         <div class="lb-col-points">
@@ -129,10 +136,22 @@
                         <div class="lb-col-events">${user.events}</div>
                     </div>
                 `).join('')}
+                ${!userInLeaderboard ? `
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); text-align: center;">
+                        <i data-lucide="sparkles" style="width: 2rem; height: 2rem; margin: 0 auto 0.5rem; display: block; color: var(--emerald-500);"></i>
+                        <p style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">You're not on the leaderboard yet!</p>
+                        <p style="color: var(--text-muted); margin: 0;">Keep volunteering and making an impact to see your name here. Every event brings you closer to the top! 🌟</p>
+                    </div>
+                ` : ''}
             `;
+            
+            // Re-initialize icons after DOM update
+            lucide.createIcons();
         }
 
         renderLeaderboard();
+        updateUserCoins();
+        updateUserAvatar();
     </script>
 </body>
 </html>

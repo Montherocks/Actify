@@ -6,15 +6,126 @@
     <title>Profile | Actify</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/profile.css">
+    <style>
+        .profile-page {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+        }
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .profile-header-new {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .profile-avatar-new {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .profile-name-new {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .profile-email-new {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+        .profile-stats-new {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        .stat-item-new {
+            text-align: center;
+        }
+        .stat-number-new {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+        .stat-label-new {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .profile-content-new {
+            padding: 3rem 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .stat-card-new {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--emerald-500);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card-new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .progress-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .progress-item-new {
+            margin-bottom: 1.5rem;
+        }
+        .progress-bar-new {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .progress-fill-new {
+            height: 100%;
+            background: linear-gradient(45deg, #10b981, #059669);
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+    </style>
 </head>
-<body>
+<body class="profile-page">
     <nav class="navbar">
         <div class="container">
             <div class="navbar-brand">
-                <div class="logo">
-                    <div class="logo-icon">V</div>
-                    <span class="logo-text">Actify</span>
-                </div>
+                <a href="dashboard.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="brand-icon-small">
+                        <i data-lucide="heart" class="icon-filled"></i>
+                    </div>
+                    <span style="font-weight: 700; font-size: 1.25rem;">Actify</span>
+                </a>
             </div>
             <div class="navbar-links">
                 <a href="dashboard.html" class="nav-link">Dashboard</a>
@@ -22,44 +133,43 @@
                 <a href="leaderboard.html" class="nav-link">Leaderboard</a>
                 <a href="rewards.html" class="nav-link">Rewards</a>
                 <a href="badges.html" class="nav-link">Badges</a>
-                <div class="coin-display">
-                    <i data-lucide="coins" class="coin-icon"></i>
-                    <span class="coin-value" id="coinValue">0</span>
+                <div class="nav-user">
+                    <div class="user-coins">
+                        <span class="coin-value" id="coinValue">0</span>
+                    </div>
+                    <span class="coin-icon">🪙</span>
+                    <a href="profile.html" style="text-decoration: none;">
+                        <div class="user-avatar" id="navAvatar" style="cursor: pointer;">U</div>
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container" style="margin-top: 2rem;">
-        <div class="profile-header">
-            <div class="profile-avatar">
-                <div class="avatar-circle">
-                    <i data-lucide="user" class="avatar-icon"></i>
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header-new">
+                <div class="profile-avatar-new" id="profileAvatarNew">
+                    U
                 </div>
-                <button class="change-avatar-btn">
-                    <i data-lucide="camera"></i>
-                    Change Photo
-                </button>
-            </div>
-            <div class="profile-info">
-                <h1 class="profile-name" id="profileName">John Doe</h1>
-                <p class="profile-email" id="profileEmail">john.doe@volu.app</p>
-                <div class="profile-stats-quick">
-                    <div class="stat-quick">
-                        <i data-lucide="calendar-check"></i>
-                        <span id="eventsCompleted">0</span> Events
+                <h1 class="profile-name-new" id="profileNameNew">Loading...</h1>
+                <p class="profile-email-new" id="profileEmailNew">Loading...</p>
+                <div class="profile-stats-new">
+                    <div class="stat-item-new">
+                        <span class="stat-number-new" id="pointsDisplay">0</span>
+                        <span class="stat-label-new">Points</span>
                     </div>
-                    <div class="stat-quick">
-                        <i data-lucide="clock"></i>
-                        <span id="hoursVolunteered">0</span> Hours
+                    <div class="stat-item-new">
+                        <span class="stat-number-new" id="eventsDisplay">0</span>
+                        <span class="stat-label-new">Events</span>
                     </div>
-                    <div class="stat-quick">
-                        <i data-lucide="award"></i>
-                        <span id="badgesEarned">0</span> Badges
+                    <div class="stat-item-new">
+                        <span class="stat-number-new" id="hoursDisplay">0</span>
+                        <span class="stat-label-new">Hours</span>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="profile-content-new">
 
         <div class="profile-content">
             <div class="profile-main">
@@ -211,51 +321,100 @@
     <script>
         lucide.createIcons();
 
-        // Load profile data
+        // Load profile data from backend API
         async function loadProfileData() {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            
-            // Update profile info
-            document.getElementById('profileName').textContent = user.name || 'John Doe';
-            document.getElementById('profileEmail').textContent = user.email || 'john.doe@actify.app';
-
-            // Mock data for demo
-            const stats = {
-                points: 2450,
-                eventsCompleted: 8,
-                hoursVolunteered: 42,
-                badgesEarned: 5,
-                eventProgress: 8,
-                timeProgress: 42,
-                badgeProgress: 5
-            };
-
-            // Update coin display
-            document.getElementById('coinValue').textContent = stats.points;
-
-            // Update quick stats
-            document.getElementById('eventsCompleted').textContent = stats.eventsCompleted;
-            document.getElementById('hoursVolunteered').textContent = stats.hoursVolunteered;
-            document.getElementById('badgesEarned').textContent = stats.badgesEarned;
-
-            // Update detailed stats
-            document.getElementById('totalPoints').textContent = stats.points;
-            document.getElementById('eventsAttended').textContent = stats.eventsCompleted;
-            document.getElementById('hoursContributed').textContent = stats.hoursVolunteered;
-
-            // Update progress bars
-            const eventPercent = (stats.eventProgress / 10) * 100;
-            const timePercent = (stats.timeProgress / 50) * 100;
-            const badgePercent = (stats.badgeProgress / 15) * 100;
-
-            document.getElementById('eventProgress').textContent = `${stats.eventProgress}/10 events`;
-            document.getElementById('eventProgressBar').style.width = `${eventPercent}%`;
-
-            document.getElementById('timeProgress').textContent = `${stats.timeProgress}/50 hours`;
-            document.getElementById('timeProgressBar').style.width = `${timePercent}%`;
-
-            document.getElementById('badgeProgress').textContent = `${stats.badgeProgress}/15 badges`;
-            document.getElementById('badgeProgressBar').style.width = `${badgePercent}%`;
+            try {
+                // Fetch fresh profile data from backend
+                const profileResponse = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
+                
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    
+                    // Update user display with real data
+                    const fullName = `${profileData.firstName} ${profileData.lastName}`;
+                    document.getElementById('profileNameNew').textContent = fullName;
+                    document.getElementById('profileEmailNew').textContent = profileData.email;
+                    
+                    // Update avatar with first letter of name
+                    const avatarLetter = profileData.firstName.charAt(0).toUpperCase();
+                    document.getElementById('profileAvatarNew').textContent = avatarLetter;
+                    document.getElementById('navAvatar').textContent = avatarLetter;
+                    
+                    // Update stats with real backend data
+                    document.getElementById('pointsDisplay').textContent = profileData.volunteerPoints.toLocaleString();
+                    document.getElementById('eventsDisplay').textContent = profileData.eventsCompleted;
+                    document.getElementById('hoursDisplay').textContent = profileData.volunteerHours;
+                    
+                    // Update coin display in navbar
+                    document.getElementById('coinValue').textContent = profileData.volunteerPoints.toLocaleString();
+                    
+                    // Update detailed stats if elements exist
+                    const totalPointsEl = document.getElementById('totalPoints');
+                    if (totalPointsEl) totalPointsEl.textContent = profileData.volunteerPoints.toLocaleString();
+                    
+                    const eventsAttendedEl = document.getElementById('eventsAttended');
+                    if (eventsAttendedEl) eventsAttendedEl.textContent = profileData.eventsCompleted;
+                    
+                    const hoursContributedEl = document.getElementById('hoursContributed');
+                    if (hoursContributedEl) hoursContributedEl.textContent = profileData.volunteerHours;
+                    
+                    // Update progress bars with real data
+                    const eventPercent = Math.min((profileData.eventsCompleted / 10) * 100, 100);
+                    const timePercent = Math.min((profileData.volunteerHours / 50) * 100, 100);
+                    const badgePercent = Math.min((5 / 15) * 100, 100); // Mock badges for now
+                    
+                    const eventProgressEl = document.getElementById('eventProgress');
+                    if (eventProgressEl) eventProgressEl.textContent = `${profileData.eventsCompleted}/10 events`;
+                    
+                    const eventProgressBarEl = document.getElementById('eventProgressBar');
+                    if (eventProgressBarEl) eventProgressBarEl.style.width = `${eventPercent}%`;
+                    
+                    const timeProgressEl = document.getElementById('timeProgress');
+                    if (timeProgressEl) timeProgressEl.textContent = `${profileData.volunteerHours}/50 hours`;
+                    
+                    const timeProgressBarEl = document.getElementById('timeProgressBar');
+                    if (timeProgressBarEl) timeProgressBarEl.style.width = `${timePercent}%`;
+                    
+                    // Update localStorage with fresh data
+                    const updatedUser = {
+                        id: profileData.id,
+                        firstName: profileData.firstName,
+                        lastName: profileData.lastName,
+                        name: fullName,
+                        email: profileData.email,
+                        volunteerPoints: profileData.volunteerPoints,
+                        eventsCompleted: profileData.eventsCompleted,
+                        volunteerHours: profileData.volunteerHours,
+                        phone: profileData.phone,
+                        country: profileData.country,
+                        city: profileData.city,
+                        neighborhood: profileData.neighborhood,
+                        interests: profileData.interests
+                    };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    
+                } else {
+                    // Fallback to localStorage if API fails
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    document.getElementById('profileNameNew').textContent = user.name || 'John Doe';
+                    document.getElementById('profileEmailNew').textContent = user.email || 'user@example.com';
+                    
+                    const avatarLetter = (user.name || user.firstName || 'U').charAt(0).toUpperCase();
+                    document.getElementById('profileAvatarNew').textContent = avatarLetter;
+                    document.getElementById('navAvatar').textContent = avatarLetter;
+                    
+                    // Use default stats if no backend data
+                    document.getElementById('pointsDisplay').textContent = (user.volunteerPoints || 2450).toLocaleString();
+                    document.getElementById('eventsDisplay').textContent = user.eventsCompleted || 8;
+                    document.getElementById('hoursDisplay').textContent = user.volunteerHours || 42;
+                    document.getElementById('coinValue').textContent = (user.volunteerPoints || 2450).toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                // Fallback display
+                document.getElementById('profileNameNew').textContent = 'User Profile';
+                document.getElementById('profileEmailNew').textContent = 'user@actify.app';
+            }
         }
 
         function logout() {
@@ -264,12 +423,37 @@
             window.location.href = 'login.html';
         }
 
-        // Check authentication
-        if (!localStorage.getItem('token')) {
-            window.location.href = 'login.html';
-        } else {
-            loadProfileData();
+        // Initialize demo data if needed
+        async function initDemo() {
+            if (!localStorage.getItem('user') || !localStorage.getItem('token')) {
+                const demoUser = {
+                    id: 1,
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    name: 'John Doe',
+                    email: 'john.doe@example.com',
+                    volunteerPoints: 2850,
+                    eventsCompleted: 12,
+                    volunteerHours: 48,
+                    phone: '+1-555-0123',
+                    country: 'United States',
+                    city: 'New York',
+                    neighborhood: 'Manhattan',
+                    interests: 'Environment, Education, Community Service'
+                };
+                localStorage.setItem('user', JSON.stringify(demoUser));
+                localStorage.setItem('token', 'demo-token-12345');
+            }
         }
+
+        // Initialize page
+        async function initPage() {
+            await initDemo();
+            await loadProfileData();
+            lucide.createIcons();
+        }
+
+        initPage();
     </script>
 </body>
 </html>

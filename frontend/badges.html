@@ -40,10 +40,12 @@
 
             <div class="nav-user">
                 <div class="user-coins">
-                    <span class="coin-value">2,850</span>
-                    <span class="coin-label">coins</span>
+                    <span class="coin-value">0</span>
                 </div>
-                <div class="user-avatar">A</div>
+                <span class="coin-icon">🪙</span>
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="user-avatar" style="cursor: pointer;">A</div>
+                </a>
             </div>
         </div>
 
@@ -255,8 +257,12 @@
     </main>
 
     <script src="app.js"></script>
+    <script src="app.js"></script>
     <script>
         lucide.createIcons();
+        // Initialize user data
+        updateUserCoins();
+        updateUserAvatar();
     </script>
 </body>
 </html>

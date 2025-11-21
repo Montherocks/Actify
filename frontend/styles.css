@@ -150,10 +150,12 @@ img {
     width: 2rem;
     height: 2rem;
     border-radius: var(--radius-sm);
-    background: var(--primary);
+    background: linear-gradient(to bottom right, var(--emerald-500), var(--emerald-600));
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--white);
+    box-shadow: var(--shadow-sm);
 }
 
 .icon-filled {
@@ -197,6 +199,12 @@ img {
     font-size: 0.875rem;
 }
 
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .coin-value {
     color: var(--accent);
     font-weight: 700;
@@ -204,6 +212,11 @@ img {
 
 .coin-label {
     color: var(--text-muted);
+}
+
+.coin-icon {
+    font-size: 1rem;
+    margin-left: 0.25rem;
 }
 
 .user-avatar {

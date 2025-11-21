@@ -147,7 +147,7 @@ function createNavigation(currentPage = '') {
                     <div class="brand-icon-small">
                         <i data-lucide="heart" class="icon-filled"></i>
                     </div>
-                    <span class="brand-name">Volu</span>
+                    <span class="brand-name">Actify</span>
                 </a>
 
                 <div class="nav-links-main">

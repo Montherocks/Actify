@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test | Actify</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; }
+        .test-section { margin: 2rem 0; padding: 1rem; border: 1px solid #ddd; }
+        button { padding: 0.5rem 1rem; margin: 0.5rem; }
+        .result { margin: 1rem 0; padding: 1rem; background: #f5f5f5; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Actify API Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Register Test User</h2>
+        <button onclick="registerTestUser()">Register John Doe</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Login Test User</h2>
+        <button onclick="loginTestUser()">Login John Doe</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Get Profile Data</h2>
+        <button onclick="getProfile()">Get Profile</button>
+        <div id="profileResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Dashboard</h2>
+        <button onclick="window.open('dashboard.html', '_blank')">Open Dashboard</button>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        async function registerTestUser() {
+            const resultDiv = document.getElementById('registerResult');
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john.doe@example.com',
+                        password: 'password123',
+                        phone: '+1-555-0123',
+                        country: 'United States',
+                        city: 'New York',
+                        neighborhood: 'Manhattan',
+                        interests: 'Environment, Education, Community Service'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">✅ Registration successful!<br>Response: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Registration failed: ${data.message || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loginTestUser() {
+            const resultDiv = document.getElementById('loginResult');
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'john.doe@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userId', data.userId);
+                    resultDiv.innerHTML = `<div class="success">✅ Login successful!<br>Token stored. User ID: ${data.userId}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Login failed: ${data.message || 'Invalid credentials'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function getProfile() {
+            const resultDiv = document.getElementById('profileResult');
+            try {
+                const response = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
+                
+                if (response.ok) {
+                    const profileData = await response.json();
+                    resultDiv.innerHTML = `<div class="success">✅ Profile data retrieved!<br><pre>${JSON.stringify(profileData, null, 2)}</pre></div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Profile fetch failed. Status: ${response.status}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

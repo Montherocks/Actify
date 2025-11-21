@@ -28,22 +28,42 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody Map<String, Object> request) {
         try {
             User user = new User();
-            user.setFirstName((String) request.get("firstName"));
-            user.setLastName((String) request.get("lastName"));
+            
+            // Handle name field - split into firstName and lastName
+            String name = (String) request.get("name");
+            if (name != null && !name.trim().isEmpty()) {
+                String[] nameParts = name.trim().split("\\s+", 2);
+                user.setFirstName(nameParts[0]);
+                user.setLastName(nameParts.length > 1 ? nameParts[1] : nameParts[0]);
+            } else {
+                user.setFirstName("User");
+                user.setLastName("User");
+            }
+            
             user.setEmail((String) request.get("email"));
-            user.setPhone((String) request.get("phone"));
-            user.setCountry((String) request.get("country"));
-            user.setCity((String) request.get("city"));
-            user.setNeighborhood((String) request.get("neighborhood"));
-            user.setInterests(String.join(",", (java.util.List<String>) request.get("interests")));
             user.setPassword(passwordEncoder.encode((String) request.get("password")));
-            user.setUserType("volunteer");
+            
+            // Set userType from request or default to volunteer
+            String userType = (String) request.get("userType");
+            user.setUserType(userType != null ? userType : "volunteer");
+            
+            // Set default values for required fields
+            user.setPhone(request.get("phone") != null ? (String) request.get("phone") : "Not provided");
+            user.setCountry(request.get("country") != null ? (String) request.get("country") : "Not provided");
+            user.setCity(request.get("city") != null ? (String) request.get("city") : "Not provided");
+            user.setNeighborhood(request.get("neighborhood") != null ? (String) request.get("neighborhood") : "Not provided");
+            user.setInterests(request.get("interests") != null ? (String) request.get("interests") : "");
             
             userRepository.save(user);
+            
+            // Generate token for auto-login
+            String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "User registered successfully");
+            response.put("token", token);
+            response.put("userId", user.getId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();

@@ -40,10 +40,12 @@
 
             <div class="nav-user">
                 <div class="user-coins">
-                    <span class="coin-value">2,850</span>
-                    <span class="coin-label">coins</span>
+                    <span class="coin-value">0</span>
                 </div>
-                <div class="user-avatar">A</div>
+                <span class="coin-icon">🪙</span>
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="user-avatar" style="cursor: pointer;">A</div>
+                </a>
             </div>
         </div>
 
@@ -72,7 +74,7 @@
     <main class="main-container">
         <!-- Welcome Header -->
         <div class="page-header">
-            <h1 class="page-title">Welcome back, <span id="userName">Alex Thompson</span>!</h1>
+            <h1 class="page-title">Welcome Back, <span id="userName">User</span>!</h1>
             <p class="page-subtitle">Track your impact and discover new opportunities</p>
         </div>
 
@@ -175,8 +177,43 @@
         // Initialize Lucide icons
         lucide.createIcons();
 
-        // Load user data
-        loadDashboardData();
+        // Initialize demo data for testing if no user is logged in
+        async function initializeDemo() {
+            if (!localStorage.getItem('user') || !localStorage.getItem('token')) {
+                // Create demo user data for testing
+                const demoUser = {
+                    id: 1,
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    name: 'John Doe',
+                    email: 'john.doe@example.com',
+                    volunteerPoints: 2850,
+                    eventsCompleted: 12,
+                    volunteerHours: 48,
+                    phone: '+1-555-0123',
+                    country: 'United States',
+                    city: 'New York',
+                    neighborhood: 'Manhattan',
+                    interests: 'Environment, Education, Community Service'
+                };
+                
+                localStorage.setItem('user', JSON.stringify(demoUser));
+                localStorage.setItem('token', 'demo-token-12345');
+                
+                // Show demo notice
+                console.log('Demo mode: Using test user data since no login detected');
+            }
+        }
+
+        // Initialize and load data
+        async function init() {
+            await initializeDemo();
+            loadDashboardData();
+            updateUserCoins();
+            updateUserAvatar();
+        }
+
+        init();
     </script>
 </body>
 </html>
