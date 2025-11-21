@@ -91,27 +91,6 @@ Actify/
   <img src="https://img.shields.io/badge/pgAdmin-4-orange?style=flat-square" alt="pgAdmin"/>
 </p>
 
-**Install PostgreSQL 17 and pgAdmin 4**, then set up the database:
-
-```bash
-# 🚀 Navigate to database folder
-cd database
-
-# 🎯 Option A: Complete setup (one command!)
-psql -U postgres -f init.sql
-
-# 🔧 Option B: Step by step
-psql -U postgres -f 01_create_database.sql
-psql -U postgres -d actify_db -f 02_create_tables.sql
-psql -U postgres -d actify_db -f 03_seed_data.sql
-```
-
-**🖥️ Using pgAdmin 4:**
-1. ➕ Create database `actify_db`
-2. 🔧 Open Query Tool  
-3. 📂 Run `init.sql` or individual scripts
-
-> 📖 See `database/README.md` for detailed instructions and troubleshooting!
 
 ### 🚀 2. Backend Setup (Spring Boot)
 
@@ -121,26 +100,6 @@ psql -U postgres -d actify_db -f 03_seed_data.sql
   <img src="https://img.shields.io/badge/Maven-Build-blue?style=flat-square&logo=apache-maven" alt="Maven"/>
 </p>
 
-**1. 🔧 Configure database connection:**
-
-Edit `backend/src/main/resources/application.properties`:
-```properties
-# 🗄️ Database Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/actify_db
-spring.datasource.username=postgres
-spring.datasource.password=your_password
-
-# 🚀 Server Configuration
-server.port=8081
-```
-
-**2. 🎯 Start the backend:**
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-✅ Backend runs at `http://localhost:8081` with API at `/api/*`
 
 ### 🌐 3. Frontend Setup (No Build Required!)
 
@@ -149,44 +108,6 @@ mvn spring-boot:run
   <img src="https://img.shields.io/badge/Pure-HTML%2FCSS%2FJS-orange?style=flat-square" alt="Pure Frontend"/>
 </p>
 
-**🎯 Option A: Direct file access**
-```bash
-# Simply open in browser!
-open frontend/index.html
-# or double-click index.html
-```
-
-**🚀 Option B: Local server (recommended)**
-```bash
-cd frontend
-
-# Python server
-python -m http.server 5500
-
-# Node.js server
-npx serve .
-
-# Live Server (VS Code extension)
-# Right-click index.html → "Open with Live Server"
-```
-
-🌟 **Frontend runs at:** `http://localhost:5500`
-
-### 📱 Alternative: React Version
-
-**1. 📦 Install dependencies:**
-```bash
-cd nextjs-version
-pnpm install
-```
-
-**2. 🚀 Start development:**
-```bash
-pnpm dev
-```
-
-**3. 🌐 Open browser:**
-Navigate to [http://localhost:3000](http://localhost:3000)
 
 > 💡 **Enhanced UI** with modern React components and styling!
 
