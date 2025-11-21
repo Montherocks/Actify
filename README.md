@@ -126,7 +126,8 @@ Actify/
 | 👤 `GET` | `/users/profile` | Get user profile | ✅ Yes |
 | 📊 `GET` | `/leaderboard` | Top volunteers | ✅ Yes |
 
----
+
+
 
 ## 🏗️ Database Schema
 
@@ -150,7 +151,7 @@ Actify/
 
 ---
 
-## 🤝 Contributing
+<!-- ## 🤝 Contributing
 
 <p align="center">
   <img src="https://img.shields.io/badge/Contributions-Welcome-brightgreen?style=for-the-badge" alt="Contributions Welcome"/>
@@ -163,7 +164,7 @@ Actify/
 5. 📤 Push to the branch (`git push origin feature/amazing-feature`)
 6. 🔄 Open a Pull Request
 
----
+--- -->
 
 ## 👥 Team
 
