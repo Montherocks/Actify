@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteers | Actify Org</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/org.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Organization Navigation -->
+    <nav class="nav-org">
+        <div class="nav-container">
+            <a href="org-dashboard.html" class="nav-brand">
+                <div class="brand-icon-org">
+                    <i data-lucide="heart" class="icon-filled"></i>
+                </div>
+                <span class="brand-name">Actify Org</span>
+            </a>
+
+            <div class="nav-org-links">
+                <a href="org-dashboard.html" class="nav-link">
+                    <i data-lucide="layout-dashboard"></i>
+                    Dashboard
+                </a>
+                <a href="org-events.html" class="nav-link">
+                    <i data-lucide="calendar"></i>
+                    My Events
+                </a>
+                <a href="org-create-event.html" class="nav-link">
+                    <i data-lucide="plus-circle"></i>
+                    Create Event
+                </a>
+                <a href="org-volunteers.html" class="nav-link active">
+                    <i data-lucide="users"></i>
+                    Volunteers
+                </a>
+            </div>
+
+            <div class="nav-org-user">
+                <div class="org-avatar" id="orgAvatar">O</div>
+                <button onclick="logoutOrganization()" class="logout-btn" title="Logout">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="org-main">
+        <!-- Header -->
+        <div class="org-header">
+            <div>
+                <h1>Volunteers</h1>
+                <p>View volunteers who have participated in your events</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <!-- Search -->
+                <div style="position: relative;">
+                    <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 1rem; height: 1rem; color: var(--text-muted);"></i>
+                    <input type="text" id="searchInput" class="form-input" style="padding-left: 2.5rem; width: 250px;" 
+                           placeholder="Search volunteers..." oninput="searchVolunteers()" />
+                </div>
+                <!-- Filter -->
+                <select id="eventFilter" class="form-input" style="width: auto;" onchange="filterVolunteers()">
+                    <option value="all">All Events</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="org-stats-grid" style="margin-bottom: 2rem;">
+            <div class="org-stat-card">
+                <div class="stat-label">
+                    <i data-lucide="users"></i>
+                    Total Volunteers
+                </div>
+                <div class="stat-value" id="totalVolunteers">0</div>
+            </div>
+            <div class="org-stat-card">
+                <div class="stat-label">
+                    <i data-lucide="user-check"></i>
+                    Active Volunteers
+                </div>
+                <div class="stat-value" id="activeVolunteers">0</div>
+            </div>
+            <div class="org-stat-card">
+                <div class="stat-label">
+                    <i data-lucide="star"></i>
+                    Top Performer
+                </div>
+                <div class="stat-value" id="topVolunteer" style="font-size: 1.25rem;">-</div>
+            </div>
+            <div class="org-stat-card">
+                <div class="stat-label">
+                    <i data-lucide="clock"></i>
+                    Total Hours
+                </div>
+                <div class="stat-value" id="totalHours">0</div>
+            </div>
+        </div>
+
+        <!-- Volunteers List -->
+        <div class="org-events-section">
+            <h2>All Volunteers</h2>
+            <div id="volunteersList" class="volunteers-grid">
+                <!-- Volunteers will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        let allVolunteers = [];
+
+        // Check organization authentication
+        function checkOrgAuth() {
+            const org = JSON.parse(localStorage.getItem('organization') || 'null');
+            const token = localStorage.getItem('orgToken');
+            if (!org || !token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Sample volunteers data
+        const sampleVolunteers = [
+            { id: 1, name: "Sarah Chen", email: "sarah@example.com", eventsAttended: 8, hoursVolunteered: 32, points: 2450, lastEvent: "Park Cleanup Drive" },
+            { id: 2, name: "Marcus Johnson", email: "marcus@example.com", eventsAttended: 12, hoursVolunteered: 48, points: 3200, lastEvent: "Winter Relief Supply Drive" },
+            { id: 3, name: "Emily Rodriguez", email: "emily@example.com", eventsAttended: 5, hoursVolunteered: 20, points: 1500, lastEvent: "Community Teaching Workshop" },
+            { id: 4, name: "David Kim", email: "david@example.com", eventsAttended: 15, hoursVolunteered: 60, points: 4100, lastEvent: "Riverside Trail Restoration" },
+            { id: 5, name: "Jessica Miller", email: "jessica@example.com", eventsAttended: 3, hoursVolunteered: 12, points: 900, lastEvent: "Food Bank Sorting" },
+            { id: 6, name: "Michael Brown", email: "michael@example.com", eventsAttended: 7, hoursVolunteered: 28, points: 2100, lastEvent: "Park Cleanup Drive" },
+            { id: 7, name: "Amanda Wilson", email: "amanda@example.com", eventsAttended: 10, hoursVolunteered: 40, points: 2800, lastEvent: "Winter Relief Supply Drive" },
+            { id: 8, name: "James Taylor", email: "james@example.com", eventsAttended: 6, hoursVolunteered: 24, points: 1800, lastEvent: "Community Teaching Workshop" }
+        ];
+
+        // Load volunteers
+        async function loadVolunteers() {
+            if (!checkOrgAuth()) return;
+
+            const org = JSON.parse(localStorage.getItem('organization'));
+            
+            // Update avatar
+            const avatarEl = document.getElementById('orgAvatar');
+            if (avatarEl && org.name) {
+                avatarEl.textContent = org.name.charAt(0).toUpperCase();
+            }
+
+            try {
+                const response = await fetchOrgWithAuth(`${API_BASE_URL}/org/volunteers`);
+                if (response.ok) {
+                    allVolunteers = await response.json();
+                } else {
+                    allVolunteers = sampleVolunteers;
+                }
+            } catch (error) {
+                console.log('Using sample volunteers');
+                allVolunteers = sampleVolunteers;
+            }
+
+            updateStats();
+            renderVolunteers(allVolunteers);
+            populateEventFilter();
+        }
+
+        function updateStats() {
+            document.getElementById('totalVolunteers').textContent = allVolunteers.length;
+            document.getElementById('activeVolunteers').textContent = allVolunteers.filter(v => v.eventsAttended > 0).length;
+            
+            const totalHours = allVolunteers.reduce((sum, v) => sum + v.hoursVolunteered, 0);
+            document.getElementById('totalHours').textContent = totalHours;
+
+            // Find top performer
+            const topPerformer = allVolunteers.reduce((top, v) => v.points > (top?.points || 0) ? v : top, null);
+            if (topPerformer) {
+                document.getElementById('topVolunteer').textContent = topPerformer.name.split(' ')[0];
+            }
+        }
+
+        function populateEventFilter() {
+            const filter = document.getElementById('eventFilter');
+            const events = [...new Set(allVolunteers.map(v => v.lastEvent))];
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event;
+                option.textContent = event;
+                filter.appendChild(option);
+            });
+        }
+
+        function searchVolunteers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allVolunteers.filter(v => 
+                v.name.toLowerCase().includes(query) || 
+                v.email.toLowerCase().includes(query)
+            );
+            renderVolunteers(filtered);
+        }
+
+        function filterVolunteers() {
+            const event = document.getElementById('eventFilter').value;
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = allVolunteers;
+            if (event !== 'all') {
+                filtered = filtered.filter(v => v.lastEvent === event);
+            }
+            if (query) {
+                filtered = filtered.filter(v => 
+                    v.name.toLowerCase().includes(query) || 
+                    v.email.toLowerCase().includes(query)
+                );
+            }
+            renderVolunteers(filtered);
+        }
+
+        function renderVolunteers(volunteers) {
+            const container = document.getElementById('volunteersList');
+            
+            if (volunteers.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1;">
+                        <i data-lucide="users-x" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
+                        <p>No volunteers found</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = volunteers.map(volunteer => `
+                <div class="volunteer-card">
+                    <div class="volunteer-avatar">${volunteer.name.charAt(0)}</div>
+                    <div class="volunteer-info">
+                        <h4>${volunteer.name}</h4>
+                        <p>${volunteer.email}</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.75rem;">
+                            <span><strong>${volunteer.eventsAttended}</strong> events</span>
+                            <span><strong>${volunteer.hoursVolunteered}</strong> hours</span>
+                            <span><strong>${volunteer.points}</strong> VP</span>
+                        </div>
+                    </div>
+                    <div class="volunteer-actions">
+                        <button class="btn btn-outline btn-sm" onclick="viewVolunteer(${volunteer.id})">
+                            <i data-lucide="eye" style="width: 0.875rem; height: 0.875rem;"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function viewVolunteer(id) {
+            const volunteer = allVolunteers.find(v => v.id === id);
+            if (volunteer) {
+                alert(`Volunteer Details:\n\nName: ${volunteer.name}\nEmail: ${volunteer.email}\nEvents: ${volunteer.eventsAttended}\nHours: ${volunteer.hoursVolunteered}\nPoints: ${volunteer.points}\nLast Event: ${volunteer.lastEvent}`);
+            }
+        }
+
+        // Initialize
+        loadVolunteers();
+    </script>
+</body>
+
+</html>

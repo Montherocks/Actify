@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Events | Actify Org</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/org.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Organization Navigation -->
+    <nav class="nav-org">
+        <div class="nav-container">
+            <a href="org-dashboard.html" class="nav-brand">
+                <div class="brand-icon-org">
+                    <i data-lucide="heart" class="icon-filled"></i>
+                </div>
+                <span class="brand-name">Actify Org</span>
+            </a>
+
+            <div class="nav-org-links">
+                <a href="org-dashboard.html" class="nav-link">
+                    <i data-lucide="layout-dashboard"></i>
+                    Dashboard
+                </a>
+                <a href="org-events.html" class="nav-link active">
+                    <i data-lucide="calendar"></i>
+                    My Events
+                </a>
+                <a href="org-create-event.html" class="nav-link">
+                    <i data-lucide="plus-circle"></i>
+                    Create Event
+                </a>
+                <a href="org-volunteers.html" class="nav-link">
+                    <i data-lucide="users"></i>
+                    Volunteers
+                </a>
+            </div>
+
+            <div class="nav-org-user">
+                <div class="org-avatar" id="orgAvatar">O</div>
+                <button onclick="logoutOrganization()" class="logout-btn" title="Logout">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="org-main">
+        <!-- Header -->
+        <div class="org-header">
+            <div>
+                <h1>My Events</h1>
+                <p>View and manage all your volunteer events</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <!-- Filter -->
+                <select id="statusFilter" class="form-input" style="width: auto;" onchange="filterEvents()">
+                    <option value="all">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <a href="org-create-event.html">
+                    <button class="btn btn-primary">
+                        <i data-lucide="plus" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+                        Create Event
+                    </button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Events List -->
+        <div class="org-events-section">
+            <div id="eventsList">
+                <!-- Events will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        let allEvents = [];
+
+        // Check organization authentication
+        function checkOrgAuth() {
+            const org = JSON.parse(localStorage.getItem('organization') || 'null');
+            const token = localStorage.getItem('orgToken');
+            if (!org || !token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Sample events data
+        const sampleEvents = [
+            {
+                id: 1,
+                title: "Park Cleanup Drive",
+                date: "2025-11-20",
+                time: "9:00 AM - 12:00 PM",
+                status: "approved",
+                volunteers: 24,
+                capacity: 30,
+                pointsReward: 150,
+                location: "Central Park",
+                description: "Help us clean up Central Park and make our community greener!"
+            },
+            {
+                id: 2,
+                title: "Community Teaching Workshop",
+                date: "2025-11-22",
+                time: "2:00 PM - 5:00 PM",
+                status: "pending",
+                volunteers: 12,
+                capacity: 15,
+                pointsReward: 200,
+                location: "Community Center",
+                description: "Share your skills by teaching local students."
+            },
+            {
+                id: 3,
+                title: "Winter Relief Supply Drive",
+                date: "2025-11-28",
+                time: "10:00 AM - 3:00 PM",
+                status: "approved",
+                volunteers: 35,
+                capacity: 40,
+                pointsReward: 175,
+                location: "Downtown Square",
+                description: "Distribute winter supplies to those in need."
+            },
+            {
+                id: 4,
+                title: "Riverside Trail Restoration",
+                date: "2025-12-05",
+                time: "8:00 AM - 2:00 PM",
+                status: "approved",
+                volunteers: 18,
+                capacity: 25,
+                pointsReward: 200,
+                location: "Riverside Park",
+                description: "Help restore and beautify our local nature trail."
+            },
+            {
+                id: 5,
+                title: "Food Bank Sorting",
+                date: "2025-10-15",
+                time: "9:00 AM - 1:00 PM",
+                status: "completed",
+                volunteers: 20,
+                capacity: 20,
+                pointsReward: 125,
+                location: "City Food Bank",
+                description: "Sort and organize food donations for distribution."
+            }
+        ];
+
+        // Load events
+        async function loadEvents() {
+            if (!checkOrgAuth()) return;
+
+            const org = JSON.parse(localStorage.getItem('organization'));
+            
+            // Update avatar
+            const avatarEl = document.getElementById('orgAvatar');
+            if (avatarEl && org.name) {
+                avatarEl.textContent = org.name.charAt(0).toUpperCase();
+            }
+
+            try {
+                const response = await fetchOrgWithAuth(`${API_BASE_URL}/org/events`);
+                if (response.ok) {
+                    allEvents = await response.json();
+                } else {
+                    allEvents = sampleEvents;
+                }
+            } catch (error) {
+                console.log('Using sample events');
+                allEvents = sampleEvents;
+            }
+
+            renderEvents(allEvents);
+        }
+
+        function filterEvents() {
+            const status = document.getElementById('statusFilter').value;
+            const filtered = status === 'all' 
+                ? allEvents 
+                : allEvents.filter(e => e.status === status);
+            renderEvents(filtered);
+        }
+
+        function renderEvents(events) {
+            const container = document.getElementById('eventsList');
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <i data-lucide="calendar-x" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
+                        <p>No events found</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = events.map(event => `
+                <div class="org-event-item">
+                    <div class="org-event-info">
+                        <h3>${event.title}</h3>
+                        <div class="event-meta">
+                            <span><i data-lucide="calendar" style="width: 0.875rem; height: 0.875rem;"></i> ${new Date(event.date).toLocaleDateString()}</span>
+                            <span><i data-lucide="clock" style="width: 0.875rem; height: 0.875rem;"></i> ${event.time}</span>
+                            <span><i data-lucide="map-pin" style="width: 0.875rem; height: 0.875rem;"></i> ${event.location}</span>
+                            <span><i data-lucide="users" style="width: 0.875rem; height: 0.875rem;"></i> ${event.volunteers}/${event.capacity}</span>
+                        </div>
+                        <p class="event-description">${event.description}</p>
+                    </div>
+                    <div class="org-event-actions">
+                        <div class="org-event-reward">
+                            <div class="reward-label">Reward</div>
+                            <div class="reward-value">${event.pointsReward} VP</div>
+                        </div>
+                        <div class="status-badge ${event.status}">
+                            ${getStatusIcon(event.status)}
+                            ${event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                        </div>
+                        <a href="org-event-detail.html?id=${event.id}">
+                            <button class="btn btn-outline btn-sm">View Details</button>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                approved: '<i data-lucide="check-circle" style="width: 0.875rem; height: 0.875rem;"></i>',
+                pending: '<i data-lucide="clock" style="width: 0.875rem; height: 0.875rem;"></i>',
+                completed: '<i data-lucide="check-check" style="width: 0.875rem; height: 0.875rem;"></i>',
+                rejected: '<i data-lucide="x-circle" style="width: 0.875rem; height: 0.875rem;"></i>'
+            };
+            return icons[status] || icons.pending;
+        }
+
+        // Initialize
+        loadEvents();
+    </script>
+</body>
+
+</html>

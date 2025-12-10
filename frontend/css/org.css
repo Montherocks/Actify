@@ -1,0 +1,473 @@
+/* Organization Pages CSS */
+
+/* ===== Auth Toggle ===== */
+.auth-toggle {
+    display: flex;
+    background: var(--slate-100);
+    border-radius: var(--radius);
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-toggle-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: calc(var(--radius) - 0.125rem);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+}
+
+.auth-toggle-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+.auth-toggle-btn:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+/* ===== Organization Navigation ===== */
+.nav-org {
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+}
+
+.nav-org .nav-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+}
+
+.nav-org .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-org .brand-icon-org {
+    width: 2rem;
+    height: 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.nav-org-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.nav-org-links .nav-link {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.nav-org-links .nav-link:hover,
+.nav-org-links .nav-link.active {
+    color: var(--primary);
+}
+
+.nav-org-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.org-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* ===== Organization Dashboard ===== */
+.org-main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.org-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.org-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.org-header p {
+    color: var(--text-muted);
+}
+
+/* Stats Grid */
+.org-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.org-stat-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+}
+
+.org-stat-card .stat-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.org-stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Events List */
+.org-events-section {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.org-events-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.org-event-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--slate-50);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+    transition: background 0.2s;
+}
+
+.org-event-item:hover {
+    background: var(--slate-100);
+}
+
+.org-event-item:last-child {
+    margin-bottom: 0;
+}
+
+.org-event-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.org-event-info .event-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.org-event-info .event-description {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.org-event-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.org-event-reward {
+    text-align: right;
+}
+
+.org-event-reward .reward-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.org-event-reward .reward-value {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.status-badge.approved {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+}
+
+.status-badge.pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: #d97706;
+}
+
+.status-badge.rejected {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Create Event Form */
+.org-form-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.org-form-header {
+    margin-bottom: 2rem;
+}
+
+.org-form-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.org-form-header p {
+    color: var(--text-muted);
+}
+
+.org-form {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.org-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.org-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.org-form .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.org-form .form-input,
+.org-form .form-select,
+.org-form .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.org-form .form-input:focus,
+.org-form .form-select:focus,
+.org-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.org-form .form-textarea {
+    resize: none;
+    min-height: 100px;
+}
+
+.org-info-box {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.org-info-box h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.org-info-box p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.org-form-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.org-form-actions .btn {
+    flex: 1;
+}
+
+/* Back Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.back-link:hover {
+    opacity: 0.8;
+}
+
+/* Organization Register Form Fields */
+.org-register-fields {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.org-register-fields.active {
+    display: block;
+}
+
+/* Volunteers Management */
+.volunteers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.volunteer-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.volunteer-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.volunteer-info h4 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.volunteer-info p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.volunteer-actions {
+    margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .org-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .org-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .org-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .org-event-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .org-event-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .org-form .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-org-links {
+        display: none;
+    }
+}

@@ -6,74 +6,107 @@
     <title>Register | Actify</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/org.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="auth-page">
     <div class="auth-container">
-        <div class="auth-box">
+        <!-- Back to Homepage Link -->
+        <a href="index.html" class="back-to-home">
+            <i data-lucide="arrow-left"></i>
+            Back to Homepage
+        </a>
+        
+        <div class="auth-box" style="max-width: 500px;">
             <div class="auth-header">
                 <div class="auth-icon">
                     <i data-lucide="heart" class="icon-filled"></i>
                 </div>
                 <h1 class="auth-title">Join Actify</h1>
-                <p class="auth-subtitle">Start your volunteering journey today</p>
+                <p class="auth-subtitle">Start making an impact today</p>
+            </div>
+
+            <!-- Toggle between Volunteer and Organization -->
+            <div class="auth-toggle">
+                <button type="button" class="auth-toggle-btn active" id="volunteerToggle" onclick="switchRegisterType('volunteer')">
+                    Volunteer
+                </button>
+                <button type="button" class="auth-toggle-btn" id="orgToggle" onclick="switchRegisterType('organization')">
+                    Organization
+                </button>
             </div>
 
             <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input 
-                        type="text" 
-                        id="name" 
-                        name="name"
-                        class="form-input" 
-                        placeholder="Your name" 
-                        required
-                    />
+                <input type="hidden" id="userType" value="volunteer">
+
+                <!-- Volunteer Fields -->
+                <div id="volunteerFields">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-input" placeholder="Your name" required />
+                    </div>
                 </div>
 
+                <!-- Organization Fields (hidden by default) -->
+                <div id="orgFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Organization Name</label>
+                        <input type="text" id="orgName" name="orgName" class="form-input" placeholder="Your organization name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Organization Type</label>
+                        <select id="orgType" name="orgType" class="form-input">
+                            <option value="nonprofit">Non-Profit</option>
+                            <option value="charity">Charity</option>
+                            <option value="community">Community Group</option>
+                            <option value="educational">Educational Institution</option>
+                            <option value="government">Government Agency</option>
+                            <option value="corporate">Corporate CSR</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="orgDescription" name="orgDescription" class="form-input" rows="3" placeholder="Tell us about your organization..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Website (optional)</label>
+                        <input type="url" id="orgWebsite" name="orgWebsite" class="form-input" placeholder="https://yourorganization.com" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Contact Person Name</label>
+                        <input type="text" id="contactName" name="contactName" class="form-input" placeholder="Contact person's name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" id="orgPhone" name="orgPhone" class="form-input" placeholder="+1 (555) 000-0000" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="orgAddress" name="orgAddress" class="form-input" placeholder="Organization address" />
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email"
-                        class="form-input" 
-                        placeholder="you@example.com" 
-                        required
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">I am a</label>
-                    <select id="userType" name="userType" class="form-input">
-                        <option value="volunteer">Volunteer</option>
-                        <option value="organization">Organization</option>
-                    </select>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required />
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password"
-                        class="form-input" 
-                        placeholder="••••••••" 
-                        required
-                    />
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required />
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
-                    <input 
-                        type="password" 
-                        id="confirmPassword" 
-                        name="confirmPassword"
-                        class="form-input" 
-                        placeholder="••••••••" 
-                        required
-                    />
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="••••••••" required />
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg btn-full">Create Account</button>
@@ -90,24 +123,170 @@
     <script>
         lucide.createIcons();
 
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        function switchRegisterType(type) {
+            const volunteerToggle = document.getElementById('volunteerToggle');
+            const orgToggle = document.getElementById('orgToggle');
+            const userType = document.getElementById('userType');
+            const volunteerFields = document.getElementById('volunteerFields');
+            const orgFields = document.getElementById('orgFields');
+            const nameInput = document.getElementById('name');
+            const orgName = document.getElementById('orgName');
+            const contactName = document.getElementById('contactName');
+
+            // Clear all errors when switching
+            clearAllErrors();
+
+            if (type === 'volunteer') {
+                volunteerToggle.classList.add('active');
+                orgToggle.classList.remove('active');
+                userType.value = 'volunteer';
+                volunteerFields.style.display = 'block';
+                orgFields.style.display = 'none';
+                nameInput.required = true;
+                if (orgName) orgName.required = false;
+                if (contactName) contactName.required = false;
+            } else {
+                volunteerToggle.classList.remove('active');
+                orgToggle.classList.add('active');
+                userType.value = 'organization';
+                volunteerFields.style.display = 'none';
+                orgFields.style.display = 'block';
+                nameInput.required = false;
+                if (orgName) orgName.required = true;
+                if (contactName) contactName.required = true;
+            }
+        }
+
+        // Helper function to show error on an input
+        function showError(inputId, message) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
             
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                userType: document.getElementById('userType').value,
-                password: document.getElementById('password').value,
-                confirmPassword: document.getElementById('confirmPassword').value
-            };
+            // Add error class to input
+            input.classList.add('input-error');
             
-            if (formData.password !== formData.confirmPassword) {
-                alert('Passwords do not match!');
-                return;
+            // Remove existing error message if any
+            const existingError = input.parentElement.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
             }
             
-            // Call register API
-            registerUser(formData);
+            // Create and add error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            input.parentElement.appendChild(errorDiv);
+            
+            // Focus the input
+            input.focus();
+        }
+
+        // Helper function to clear error from an input
+        function clearError(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.classList.remove('input-error');
+            const errorMsg = input.parentElement.querySelector('.error-message');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+
+        // Clear all errors
+        function clearAllErrors() {
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+        }
+
+        // Add event listeners to clear errors on input
+        document.querySelectorAll('input, select, textarea').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('input-error');
+                const errorMsg = this.parentElement.querySelector('.error-message');
+                if (errorMsg) errorMsg.remove();
+            });
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearAllErrors();
+            
+            const userType = document.getElementById('userType').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const email = document.getElementById('email').value;
+            
+            let hasError = false;
+
+            // Common validations
+            if (!email || !email.includes('@')) {
+                showError('email', 'Please enter a valid email address');
+                hasError = true;
+            }
+
+            if (!password || password.length < 6) {
+                showError('password', 'Password must be at least 6 characters');
+                hasError = true;
+            }
+
+            if (password !== confirmPassword) {
+                showError('confirmPassword', 'Passwords do not match');
+                hasError = true;
+            }
+
+            if (userType === 'organization') {
+                const orgName = document.getElementById('orgName').value;
+                const contactName = document.getElementById('contactName').value;
+                const orgPhone = document.getElementById('orgPhone').value;
+
+                if (!orgName || orgName.trim() === '') {
+                    showError('orgName', 'Organization name is required');
+                    hasError = true;
+                }
+
+                if (!contactName || contactName.trim() === '') {
+                    showError('contactName', 'Contact person name is required');
+                    hasError = true;
+                }
+
+                if (!orgPhone || orgPhone.trim() === '') {
+                    showError('orgPhone', 'Phone number is required');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                const orgData = {
+                    name: orgName,
+                    email: email,
+                    password: password,
+                    orgType: document.getElementById('orgType').value,
+                    description: document.getElementById('orgDescription').value,
+                    website: document.getElementById('orgWebsite').value,
+                    contactName: contactName,
+                    phone: orgPhone,
+                    address: document.getElementById('orgAddress').value
+                };
+                await registerOrganization(orgData);
+            } else {
+                const name = document.getElementById('name').value;
+
+                if (!name || name.trim() === '') {
+                    showError('name', 'Full name is required');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                const formData = {
+                    name: name,
+                    email: email,
+                    userType: 'volunteer',
+                    password: password
+                };
+                await registerUser(formData);
+            }
         });
     </script>
 </body>

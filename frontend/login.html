@@ -7,30 +7,49 @@
     <title>Login | Actify</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/org.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body class="auth-page">
     <div class="auth-container">
+        <!-- Back to Homepage Link -->
+        <a href="index.html" class="back-to-home">
+            <i data-lucide="arrow-left"></i>
+            Back to Homepage
+        </a>
+        
         <div class="auth-box">
             <div class="auth-header">
                 <div class="auth-icon">
                     <i data-lucide="heart" class="icon-filled"></i>
                 </div>
                 <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to continue volunteering</p>
+                <p class="auth-subtitle">Sign in to continue</p>
+            </div>
+
+            <!-- Toggle between Volunteer and Organization -->
+            <div class="auth-toggle">
+                <button type="button" class="auth-toggle-btn active" id="volunteerToggle" onclick="switchLoginType('volunteer')">
+                    Volunteer
+                </button>
+                <button type="button" class="auth-toggle-btn" id="orgToggle" onclick="switchLoginType('organization')">
+                    Organization
+                </button>
             </div>
 
             <!-- Demo Credentials -->
-            <div class="demo-box">
+            <div class="demo-box" id="demoBox">
                 <div class="demo-badge">🎯 Demo Account</div>
                 <div class="demo-credentials">
-                    <div><strong>Email:</strong> demo@actify.app</div>
-                    <div><strong>Password:</strong> demo123</div>
+                    <div><strong>Email:</strong> <span id="demoEmail">demo@actify.app</span></div>
+                    <div><strong>Password:</strong> <span id="demoPassword">demo123</span></div>
                 </div>
             </div>
 
             <form id="loginForm" class="auth-form">
+                <input type="hidden" id="loginType" value="volunteer">
+                
                 <div class="form-group">
                     <label class="form-label">Email</label>
                     <input type="email" id="email" class="form-input" placeholder="you@example.com"
@@ -57,14 +76,179 @@
     <script>
         lucide.createIcons();
 
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        // Check URL parameter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type');
+            if (type === 'organization') {
+                switchLoginType('organization');
+            }
+        });
+
+        // Helper function to show error on an input
+        function showError(inputId, message) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.classList.add('input-error');
+            
+            const existingError = input.parentElement.querySelector('.error-message');
+            if (existingError) existingError.remove();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            input.parentElement.appendChild(errorDiv);
+            
+            input.focus();
+        }
+
+        // Helper function to clear error from an input
+        function clearError(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.classList.remove('input-error');
+            const errorMsg = input.parentElement.querySelector('.error-message');
+            if (errorMsg) errorMsg.remove();
+        }
+
+        // Clear errors on input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('input-error');
+                const errorMsg = this.parentElement.querySelector('.error-message');
+                if (errorMsg) errorMsg.remove();
+            });
+        });
+
+        function switchLoginType(type) {
+            const volunteerToggle = document.getElementById('volunteerToggle');
+            const orgToggle = document.getElementById('orgToggle');
+            const loginType = document.getElementById('loginType');
+            const demoEmail = document.getElementById('demoEmail');
+            const demoPassword = document.getElementById('demoPassword');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+
+            // Clear errors when switching
+            clearError('email');
+            clearError('password');
+
+            if (type === 'volunteer') {
+                volunteerToggle.classList.add('active');
+                orgToggle.classList.remove('active');
+                loginType.value = 'volunteer';
+                demoEmail.textContent = 'demo@actify.app';
+                demoPassword.textContent = 'demo123';
+                emailInput.value = 'demo@actify.app';
+                passwordInput.value = 'demo123';
+            } else {
+                volunteerToggle.classList.remove('active');
+                orgToggle.classList.add('active');
+                loginType.value = 'organization';
+                demoEmail.textContent = 'org@actify.app';
+                demoPassword.textContent = 'org123';
+                emailInput.value = 'org@actify.app';
+                passwordInput.value = 'org123';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            
+            // Clear previous errors
+            clearError('email');
+            clearError('password');
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loginType = document.getElementById('loginType').value;
+            
+            let hasError = false;
 
-            // Call login API
-            loginUser(email, password);
+            if (!email || !email.includes('@')) {
+                showError('email', 'Please enter a valid email address');
+                hasError = true;
+            }
+
+            if (!password || password.length < 1) {
+                showError('password', 'Please enter your password');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            if (loginType === 'organization') {
+                await loginOrganizationWithValidation(email, password);
+            } else {
+                await loginUserWithValidation(email, password);
+            }
         });
+
+        // Login functions with inline error handling
+        async function loginUserWithValidation(email, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userId', data.userId);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showError('password', data.message || 'Invalid email or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('email', 'Unable to connect. Make sure the backend is running.');
+            }
+        }
+
+        async function loginOrganizationWithValidation(email, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/org/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('organization', JSON.stringify(data));
+                    localStorage.setItem('orgToken', data.token);
+                    localStorage.setItem('orgId', data.orgId);
+                    window.location.href = 'org-dashboard.html';
+                } else {
+                    showError('password', data.message || 'Invalid email or password');
+                }
+            } catch (error) {
+                console.error('Organization login error:', error);
+                // Demo fallback
+                if (email === 'org@actify.app' && password === 'org123') {
+                    const demoOrg = {
+                        success: true,
+                        orgId: 1,
+                        name: 'Green Earth Foundation',
+                        email: 'org@actify.app',
+                        token: 'demo-org-token'
+                    };
+                    localStorage.setItem('organization', JSON.stringify(demoOrg));
+                    localStorage.setItem('orgToken', 'demo-org-token');
+                    localStorage.setItem('orgId', '1');
+                    window.location.href = 'org-dashboard.html';
+                } else {
+                    showError('email', 'Unable to connect. Make sure the backend is running.');
+                }
+            }
+        }
     </script>
 </body>
 
