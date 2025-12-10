@@ -53,12 +53,12 @@
                 <div class="form-group">
                     <label class="form-label">Email</label>
                     <input type="email" id="email" class="form-input" placeholder="you@example.com"
-                        value="demo@actify.app" required />
+                        required />
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-input" placeholder="••••••••" value="demo123"
+                    <input type="password" id="password" class="form-input" placeholder="••••••••"
                         required />
                 </div>
 
@@ -141,16 +141,16 @@
                 loginType.value = 'volunteer';
                 demoEmail.textContent = 'demo@actify.app';
                 demoPassword.textContent = 'demo123';
-                emailInput.value = 'demo@actify.app';
-                passwordInput.value = 'demo123';
+                emailInput.value = '';
+                passwordInput.value = '';
             } else {
                 volunteerToggle.classList.remove('active');
                 orgToggle.classList.add('active');
                 loginType.value = 'organization';
                 demoEmail.textContent = 'org@actify.app';
                 demoPassword.textContent = 'org123';
-                emailInput.value = 'org@actify.app';
-                passwordInput.value = 'org123';
+                emailInput.value = '';
+                passwordInput.value = '';
             }
         }
 
