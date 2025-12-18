@@ -1,11 +1,41 @@
 // ===== Component Functions =====
 
+// Cause-based default images using Unsplash
+const CAUSE_IMAGES = {
+    environment: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&h=200&fit=crop',
+    education: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=200&fit=crop',
+    health: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=200&fit=crop',
+    charity: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&h=200&fit=crop',
+    community: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=200&fit=crop',
+    animals: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=200&fit=crop',
+    elderly: 'https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=400&h=200&fit=crop',
+    youth: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=200&fit=crop',
+    'disaster-relief': 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&h=200&fit=crop',
+    other: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=200&fit=crop'
+};
+
+// Get image URL based on cause
+function getEventImage(event) {
+    // Prefer imageUrl if it exists and is valid
+    if (event.imageUrl && event.imageUrl !== '' && event.imageUrl !== '/placeholder.svg' && event.imageUrl !== 'null') {
+        return event.imageUrl;
+    }
+    // Fallback to image field
+    if (event.image && event.image !== '/placeholder.svg' && event.image !== '' && event.image !== 'null') {
+        return event.image;
+    }
+    // Default to cause-based image
+    const cause = (event.cause || 'other').toLowerCase().replace(' ', '-');
+    return CAUSE_IMAGES[cause] || CAUSE_IMAGES.other;
+}
+
 // Create Event Card Component
 function createEventCard(event) {
+    const imageUrl = getEventImage(event);
     return `
         <div class="event-card">
             <div class="event-image">
-                <img src="${event.image || '/placeholder.svg'}" alt="${event.title}" />
+                <img src="${imageUrl}" alt="${event.title}" onerror="this.src='${CAUSE_IMAGES.other}'" />
             </div>
             <div class="event-content">
                 <div class="event-header">

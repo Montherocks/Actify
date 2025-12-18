@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Actify</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background: #f9fafb; min-height: 100vh;">
+    <nav class="nav-admin">
+        <a href="index.html" class="nav-admin-brand">
+            <div class="brand-icon">A</div>
+            <span>Actify</span>
+            <span class="admin-badge">ADMIN</span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span id="adminName" style="color: #64748b; font-size: 0.875rem;"></span>
+            <a href="index.html" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                <i data-lucide="home" style="width: 1rem; height: 1rem;"></i>
+                Home
+            </a>
+            <button onclick="logoutAdmin()" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; cursor: pointer;">
+                <i data-lucide="log-out" style="width: 1rem; height: 1rem;"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Admin Dashboard</h1>
+                <p class="admin-subtitle">Manage events, organizations, and users</p>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Pending Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeCount">0</div>
+                <div class="stat-label">Active Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrgs">0</div>
+                <div class="stat-label">Organizations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Volunteers</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchTab('pending')">
+                <i data-lucide="clock" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+                Pending Approval
+            </button>
+            <button class="admin-tab" onclick="switchTab('events')">
+                <i data-lucide="calendar" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+                All Events
+            </button>
+            <button class="admin-tab" onclick="switchTab('organizations')">
+                <i data-lucide="building-2" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+                Organizations
+            </button>
+        </div>
+
+        <!-- Pending Events Section -->
+        <div id="pending-section" class="admin-section active">
+            <div id="pendingEvents">
+                <div class="empty-state">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem;">Loading pending events...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Events Section -->
+        <div id="events-section" class="admin-section">
+            <div id="allEvents">
+                <div class="empty-state">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem;">Loading events...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organizations Section -->
+        <div id="organizations-section" class="admin-section">
+            <div id="allOrganizations">
+                <div class="empty-state">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem;">Loading organizations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i data-lucide="check-circle" style="width: 1.25rem; height: 1.25rem;"></i>
+        <span id="toastMessage">Action completed</span>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        
+        // Check admin authentication
+        async function checkAdminAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+            
+            if (!adminToken || !admin) {
+                window.location.href = 'admin-login.html';
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('admin');
+                    window.location.href = 'admin-login.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                if (!data.valid) {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('admin');
+                    window.location.href = 'admin-login.html';
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // Allow offline access if token exists
+                return true;
+            }
+        }
+        
+        // Logout admin
+        function logoutAdmin() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('admin');
+            window.location.href = 'admin-login.html';
+        }
+        
+        // Initialize admin panel
+        (async function initAdmin() {
+            const isAuthed = await checkAdminAuth();
+            if (!isAuthed) return;
+            
+            // Update admin info in nav
+            const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+            const adminNameEl = document.getElementById('adminName');
+            if (adminNameEl && admin.fullName) {
+                adminNameEl.textContent = admin.fullName;
+            }
+            
+            // Load admin data
+            loadAdminData();
+        })();
+        
+        // API_BASE_URL is already defined in app.js, no need to redeclare
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            
+            event.target.closest('.admin-tab').classList.add('active');
+            document.getElementById(`${tab}-section`).classList.add('active');
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `toast show ${type}`;
+            toastMessage.textContent = message;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Load all data
+        async function loadAdminData() {
+            console.log('Loading admin data...');
+            await Promise.all([
+                loadPendingEvents(),
+                loadAllEvents(),
+                loadOrganizations(),
+                loadStats()
+            ]);
+        }
+        
+        // Load stats from real data
+        async function loadStats() {
+            try {
+                const eventsRes = await fetch(`${API_BASE_URL}/events`);
+                console.log('Events response:', eventsRes.status);
+                
+                if (eventsRes.ok) {
+                    const events = await eventsRes.json();
+                    console.log('Events data:', events);
+                    
+                    const pending = events.filter(e => e.status === 'pending').length;
+                    const active = events.filter(e => e.status === 'active').length;
+                    
+                    document.getElementById('pendingCount').textContent = pending;
+                    document.getElementById('activeCount').textContent = active;
+                } else {
+                    document.getElementById('pendingCount').textContent = '0';
+                    document.getElementById('activeCount').textContent = '0';
+                }
+                
+                // Load organizations count
+                try {
+                    const orgsRes = await fetch(`${API_BASE_URL}/organizations`);
+                    if (orgsRes.ok) {
+                        const orgs = await orgsRes.json();
+                        document.getElementById('totalOrgs').textContent = orgs.length;
+                    } else {
+                        document.getElementById('totalOrgs').textContent = '0';
+                    }
+                } catch (e) {
+                    document.getElementById('totalOrgs').textContent = '0';
+                }
+                
+                // Load users count
+                try {
+                    const usersRes = await fetch(`${API_BASE_URL}/users`);
+                    if (usersRes.ok) {
+                        const users = await usersRes.json();
+                        document.getElementById('totalUsers').textContent = users.length;
+                    } else {
+                        document.getElementById('totalUsers').textContent = '0';
+                    }
+                } catch (e) {
+                    document.getElementById('totalUsers').textContent = '0';
+                }
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('pendingCount').textContent = '0';
+                document.getElementById('activeCount').textContent = '0';
+                document.getElementById('totalOrgs').textContent = '0';
+                document.getElementById('totalUsers').textContent = '0';
+            }
+        }
+        
+        // Load pending events
+        async function loadPendingEvents() {
+            const container = document.getElementById('pendingEvents');
+            
+            try {
+                console.log('Fetching events for pending...');
+                const response = await fetch(`${API_BASE_URL}/events`);
+                console.log('Pending events response:', response.status);
+                
+                if (response.ok) {
+                    const events = await response.json();
+                    console.log('All events:', events);
+                    
+                    const pendingEvents = events.filter(e => e.status === 'pending');
+                    console.log('Pending events:', pendingEvents);
+                    
+                    if (pendingEvents.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i data-lucide="check-circle"></i>
+                                <p>No pending events! All caught up.</p>
+                                <p style="font-size: 0.8rem; margin-top: 0.5rem;">Total events in system: ${events.length}</p>
+                            </div>
+                        `;
+                    } else {
+                        renderEvents(container, pendingEvents, true);
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i data-lucide="alert-circle"></i>
+                            <p>Failed to load events. Server returned ${response.status}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading pending events:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="wifi-off"></i>
+                        <p>Cannot connect to server.</p>
+                        <p style="font-size: 0.8rem; color: #ef4444; margin-top: 0.5rem;">${error.message}</p>
+                        <p style="font-size: 0.75rem; margin-top: 0.5rem;">Make sure backend is running on port 8081</p>
+                    </div>
+                `;
+            }
+            
+            lucide.createIcons();
+        }
+        
+        // Load all events
+        async function loadAllEvents() {
+            const container = document.getElementById('allEvents');
+            
+            try {
+                console.log('Fetching all events...');
+                const response = await fetch(`${API_BASE_URL}/events`);
+                
+                if (response.ok) {
+                    const events = await response.json();
+                    console.log('All events for list:', events);
+                    
+                    if (events.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i data-lucide="calendar-x"></i>
+                                <p>No events found. Create one from the organization panel!</p>
+                            </div>
+                        `;
+                    } else {
+                        renderEvents(container, events, false);
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i data-lucide="alert-circle"></i>
+                            <p>Failed to load events. Server returned ${response.status}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading all events:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="wifi-off"></i>
+                        <p>Cannot connect to server. Make sure backend is running on port 8081.</p>
+                    </div>
+                `;
+            }
+            
+            lucide.createIcons();
+        }
+        
+        // Render events
+        function renderEvents(container, events, showApprovalActions) {
+            container.innerHTML = events.map(event => `
+                <div class="admin-card" id="event-card-${event.id}">
+                    <div class="admin-card-header">
+                        <div>
+                            <h3 class="admin-card-title">${event.title || event.name || 'Untitled Event'}</h3>
+                            <p class="admin-card-meta">
+                                <i data-lucide="calendar" style="width: 0.875rem; height: 0.875rem;"></i>
+                                ${event.date || 'TBD'} 
+                                ${event.time ? `at ${event.time}` : ''}
+                            </p>
+                            <p class="admin-card-meta" style="margin-top: 0.25rem;">
+                                <i data-lucide="map-pin" style="width: 0.875rem; height: 0.875rem;"></i>
+                                ${event.location || event.city || 'TBD'}
+                            </p>
+                            <p class="admin-card-meta" style="margin-top: 0.25rem;">
+                                <i data-lucide="building-2" style="width: 0.875rem; height: 0.875rem;"></i>
+                                ${event.organizerName || 'Unknown Organization'}
+                            </p>
+                        </div>
+                        <span class="status-badge status-${event.status || 'pending'}">
+                            ${(event.status || 'pending').charAt(0).toUpperCase() + (event.status || 'pending').slice(1)}
+                        </span>
+                    </div>
+                    <div class="admin-card-body">
+                        ${event.description || 'No description provided.'}
+                        <br><br>
+                        <strong>Points Reward:</strong> ${event.pointsReward || event.vp || 100} VP
+                        ${event.capacity ? `<br><strong>Capacity:</strong> ${event.volunteersRegistered || 0}/${event.capacity} volunteers` : ''}
+                    </div>
+                    <div class="admin-card-footer">
+                        ${showApprovalActions ? `
+                            <button class="btn-approve" onclick="approveEvent(${event.id})">
+                                <i data-lucide="check" style="width: 1rem; height: 1rem;"></i>
+                                Approve
+                            </button>
+                            <button class="btn-reject" onclick="rejectEvent(${event.id})">
+                                <i data-lucide="x" style="width: 1rem; height: 1rem;"></i>
+                                Reject
+                            </button>
+                        ` : `
+                            <button class="btn-view" onclick="viewEvent(${event.id})">
+                                <i data-lucide="eye" style="width: 1rem; height: 1rem;"></i>
+                                View Details
+                            </button>
+                            ${event.status === 'pending' ? `
+                                <button class="btn-approve" onclick="approveEvent(${event.id})">
+                                    <i data-lucide="check" style="width: 1rem; height: 1rem;"></i>
+                                    Approve
+                                </button>
+                            ` : ''}
+                            ${event.status === 'active' ? `
+                                <button class="btn-reject" onclick="deactivateEvent(${event.id})">
+                                    <i data-lucide="pause" style="width: 1rem; height: 1rem;"></i>
+                                    Deactivate
+                                </button>
+                            ` : ''}
+                        `}
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+        
+        // Load organizations
+        async function loadOrganizations() {
+            const container = document.getElementById('allOrganizations');
+            
+            try {
+                console.log('Fetching organizations...');
+                const response = await fetch(`${API_BASE_URL}/organizations`);
+                console.log('Organizations response:', response.status);
+                
+                if (response.ok) {
+                    const orgs = await response.json();
+                    console.log('Organizations:', orgs);
+                    
+                    if (orgs.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i data-lucide="building-2"></i>
+                                <p>No organizations registered yet.</p>
+                            </div>
+                        `;
+                    } else {
+                        renderOrganizations(container, orgs);
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i data-lucide="alert-circle"></i>
+                            <p>Failed to load organizations. Server returned ${response.status}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading organizations:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="wifi-off"></i>
+                        <p>Cannot connect to server. Make sure backend is running on port 8081.</p>
+                    </div>
+                `;
+            }
+            
+            lucide.createIcons();
+        }
+        
+        // Render organizations
+        function renderOrganizations(container, orgs) {
+            container.innerHTML = orgs.map(org => `
+                <div class="admin-card" id="org-card-${org.id}">
+                    <div class="admin-card-header">
+                        <div>
+                            <h3 class="admin-card-title">${org.name || 'Unknown Organization'}</h3>
+                            <p class="admin-card-meta">${org.email || 'No email'}</p>
+                            <p class="admin-card-meta" style="margin-top: 0.25rem;">
+                                Type: ${(org.orgType || 'Unknown').charAt(0).toUpperCase() + (org.orgType || 'unknown').slice(1)} • 
+                                Events: ${org.totalEvents || 0}
+                            </p>
+                        </div>
+                        <span class="status-badge ${org.verified ? 'status-active' : 'status-pending'}">
+                            ${org.verified ? 'Verified' : 'Unverified'}
+                        </span>
+                    </div>
+                    <div class="admin-card-body">
+                        ${org.description || 'No description provided.'}
+                        ${org.city || org.address ? `<br><br><strong>Location:</strong> ${org.city || ''} ${org.address || ''}` : ''}
+                    </div>
+                    <div class="admin-card-footer">
+                        ${!org.verified ? `
+                            <button class="btn-approve" onclick="verifyOrg(${org.id})">
+                                <i data-lucide="shield-check" style="width: 1rem; height: 1rem;"></i>
+                                Verify Organization
+                            </button>
+                        ` : `
+                            <button class="btn-reject" onclick="unverifyOrg(${org.id})">
+                                <i data-lucide="shield-x" style="width: 1rem; height: 1rem;"></i>
+                                Revoke Verification
+                            </button>
+                        `}
+                        <button class="btn-view" onclick="viewOrg(${org.id})">
+                            <i data-lucide="eye" style="width: 1rem; height: 1rem;"></i>
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+        
+        // Approve event
+        async function approveEvent(eventId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/events/${eventId}/approve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showToast('Event approved successfully!', 'success');
+                    // Reload data
+                    await loadAdminData();
+                } else {
+                    showToast('Failed to approve event', 'error');
+                }
+            } catch (error) {
+                console.error('Error approving event:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+        
+        // Reject event
+        async function rejectEvent(eventId) {
+            if (!confirm('Are you sure you want to reject this event?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/events/${eventId}/reject`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showToast('Event rejected', 'error');
+                    await loadAdminData();
+                } else {
+                    showToast('Failed to reject event', 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting event:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+        
+        // Deactivate event
+        async function deactivateEvent(eventId) {
+            if (!confirm('Are you sure you want to deactivate this event?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/events/${eventId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: 'inactive' })
+                });
+                
+                if (response.ok) {
+                    showToast('Event deactivated', 'success');
+                    await loadAdminData();
+                } else {
+                    showToast('Failed to deactivate event', 'error');
+                }
+            } catch (error) {
+                console.error('Error deactivating event:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+        
+        // View event details
+        function viewEvent(eventId) {
+            showToast(`Event ID: ${eventId}`, 'success');
+        }
+        
+        // Verify organization
+        async function verifyOrg(orgId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/organizations/${orgId}/verify`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showToast('Organization verified successfully!', 'success');
+                    await loadOrganizations();
+                    await loadStats();
+                } else {
+                    showToast('Failed to verify organization', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying organization:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+        
+        // Unverify organization
+        async function unverifyOrg(orgId) {
+            if (!confirm('Are you sure you want to revoke this organization\'s verification?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/organizations/${orgId}/unverify`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showToast('Verification revoked', 'success');
+                    await loadOrganizations();
+                    await loadStats();
+                } else {
+                    showToast('Failed to revoke verification', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error connecting to server', 'error');
+            }
+        }
+        
+        // View organization details
+        function viewOrg(orgId) {
+            showToast(`Organization ID: ${orgId}`, 'success');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Admin page loaded, fetching data...');
+            loadAdminData();
+        });
+    </script>
+</body>
+</html>

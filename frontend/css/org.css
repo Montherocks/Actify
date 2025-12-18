@@ -435,6 +435,133 @@
     margin-left: auto;
 }
 
+/* ===== Event Details Panel ===== */
+.event-details-panel {
+    background: linear-gradient(135deg, var(--slate-50), white);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    margin-top: -0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 1.5rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.details-loading,
+.details-error {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.details-error {
+    color: #ef4444;
+}
+
+.details-content .details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.details-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.no-volunteers {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.no-volunteers p {
+    margin-top: 0.5rem;
+}
+
+.volunteers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.volunteer-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.volunteer-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.volunteer-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.volunteer-info {
+    flex: 1;
+}
+
+.volunteer-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.volunteer-email {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.volunteer-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.volunteer-status.confirmed {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+}
+
+.volunteer-status.pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: #d97706;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .org-stats-grid {
@@ -469,5 +596,13 @@
 
     .nav-org-links {
         display: none;
+    }
+    
+    .event-details-panel {
+        padding: 1rem;
+    }
+    
+    .volunteer-item {
+        flex-wrap: wrap;
     }
 }

@@ -113,6 +113,21 @@ python -m http.server 5500
   </tr>
   <tr>
     <td align="center">
+      <img src="https://img.shields.io/badge/👨‍💻-Abhilasha%20Shee-blue?style=for-the-badge" alt="Abhilasha Shee"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://img.shields.io/badge/👨‍💻-Meghna%20Mukhopadhay-blue?style=for-the-badge" alt="Meghna Mukhopadhay"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://img.shields.io/badge/👨‍💻-Soumi%20Sahu-blue?style=for-the-badge" alt="Soumi Sahu"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
       <b>Building communities through technology</b>
     </td>
   </tr>

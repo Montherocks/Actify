@@ -7,6 +7,7 @@
     <title>Profile | Actify</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/image-picker.css">
 </head>
 
 <body class="profile-page">
@@ -50,6 +51,9 @@
                 <a href="profile.html" style="text-decoration: none;">
                     <div class="user-avatar" id="navAvatar" style="cursor: pointer;">U</div>
                 </a>
+                <button onclick="logout()" class="logout-btn" title="Logout">
+                    <i data-lucide="log-out"></i>
+                </button>
             </div>
         </div>
 
@@ -77,12 +81,21 @@
     <main class="profile-container">
         <section class="profile-card gradient-border">
             <div class="profile-header-new">
-                <div class="profile-avatar-new" id="profileAvatarNew">U</div>
-                <button class="btn btn-sm btn-outline"
-                    style="margin-bottom: 1rem; border-color: rgba(255,255,255,0.5); color: white;"
-                    onclick="alert('Upload feature coming soon!')">
-                    <i data-lucide="camera" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i> Change Avatar
-                </button>
+                <div class="avatar-upload-container">
+                    <div class="profile-avatar-new" id="profileAvatarNew">
+                        <img id="profileAvatarImg" src="" alt="Profile" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                        <span id="profileAvatarLetter">U</span>
+                    </div>
+                    <!-- Main upload button for image -->
+                    <label for="profileImageUpload" class="avatar-upload-btn" title="Upload Photo" style="bottom: 5px; right: 5px;">
+                        <i data-lucide="camera"></i>
+                    </label>
+                    <input type="file" id="profileImageUpload" accept="image/*" style="display:none;">
+                    <!-- Small emoji button -->
+                    <button type="button" class="avatar-emoji-btn" id="changeEmojiBtn" title="Set Emoji">
+                        <i data-lucide="smile"></i>
+                    </button>
+                </div>
                 <p class="profile-welcome" id="profileWelcome">Welcome back, Volunteer!</p>
                 <!-- <h1 class="profile-name-new" id="profileNameNew">Loading...</h1> -->
                 <p class="profile-email-new" id="profileEmailNew">Loading...</p>
@@ -183,16 +196,378 @@
 
         <script src="https://unpkg.com/lucide@latest"></script>
         <script src="app.js"></script>
+        <script src="js/image-library.js"></script>
         <script>
+            // Define badges data
+            const allBadges = [
+                { id: 'first-step', name: 'First Step', icon: '👣', description: 'Complete your first volunteer event', earned: false },
+                { id: 'helping-hand', name: 'Helping Hand', icon: '🤝', description: 'Complete 5 volunteer events', earned: false },
+                { id: 'community-hero', name: 'Community Hero', icon: '🦸', description: 'Complete 10 volunteer events', earned: false },
+                { id: 'time-giver', name: 'Time Giver', icon: '⏰', description: 'Volunteer for 20+ hours', earned: false },
+                { id: 'dedicated', name: 'Dedicated', icon: '💪', description: 'Volunteer for 50+ hours', earned: false },
+                { id: 'point-collector', name: 'Point Collector', icon: '💎', description: 'Earn 500+ volunteer points', earned: false },
+                { id: 'impact-maker', name: 'Impact Maker', icon: '🌟', description: 'Earn 1000+ volunteer points', earned: false },
+                { id: 'earth-guardian', name: 'Earth Guardian', icon: '🌍', description: 'Complete 3 environment events', earned: false },
+                { id: 'animal-friend', name: 'Animal Friend', icon: '🐾', description: 'Complete 3 animal welfare events', earned: false },
+                { id: 'educator', name: 'Educator', icon: '📚', description: 'Complete 3 education events', earned: false },
+                { id: 'health-hero', name: 'Health Hero', icon: '❤️', description: 'Complete 3 health events', earned: false },
+                { id: 'weekend-warrior', name: 'Weekend Warrior', icon: '🏆', description: 'Complete events on 5 weekends', earned: false }
+            ];
+
+            // Define achievements data
+            const achievements = [
+                { id: 'events-bronze', name: 'Events Bronze', description: 'Complete 5 events', progress: 0, target: 5, tier: 'bronze' },
+                { id: 'events-silver', name: 'Events Silver', description: 'Complete 15 events', progress: 0, target: 15, tier: 'silver' },
+                { id: 'events-gold', name: 'Events Gold', description: 'Complete 30 events', progress: 0, target: 30, tier: 'gold' },
+                { id: 'hours-bronze', name: 'Hours Bronze', description: 'Volunteer for 25 hours', progress: 0, target: 25, tier: 'bronze' },
+                { id: 'hours-silver', name: 'Hours Silver', description: 'Volunteer for 75 hours', progress: 0, target: 75, tier: 'silver' },
+                { id: 'hours-gold', name: 'Hours Gold', description: 'Volunteer for 150 hours', progress: 0, target: 150, tier: 'gold' },
+                { id: 'points-bronze', name: 'Points Bronze', description: 'Earn 1000 points', progress: 0, target: 1000, tier: 'bronze' },
+                { id: 'points-silver', name: 'Points Silver', description: 'Earn 5000 points', progress: 0, target: 5000, tier: 'silver' },
+                { id: 'points-gold', name: 'Points Gold', description: 'Earn 15000 points', progress: 0, target: 15000, tier: 'gold' }
+            ];
+
+            // Default causes
+            const defaultCauses = ['Environment', 'Education', 'Community', 'Health', 'Animals'];
+
             document.addEventListener('DOMContentLoaded', () => {
-                if (typeof loadProfileData === 'function') {
-                    loadProfileData();
-                }
+                loadProfilePageData();
                 setupProfileShare();
+                setupProfileImageUpload();
+                setupEmojiPicker();
+                loadSavedAvatar();
                 if (window.lucide) {
                     window.lucide.createIcons();
                 }
             });
+            
+            // Setup profile image upload (main camera button)
+            function setupProfileImageUpload() {
+                const fileInput = document.getElementById('profileImageUpload');
+                
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    // Validate file
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        return;
+                    }
+                    
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Image must be less than 5MB');
+                        return;
+                    }
+                    
+                    // Read and display image
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        
+                        // Save to localStorage
+                        localStorage.setItem('profileImage', imageData);
+                        
+                        // Display image
+                        displayProfileImage(imageData);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            // Display profile image
+            function displayProfileImage(imageData) {
+                const avatarImg = document.getElementById('profileAvatarImg');
+                const avatarLetter = document.getElementById('profileAvatarLetter');
+                const navAvatar = document.getElementById('navAvatar');
+                
+                if (avatarImg && imageData) {
+                    avatarImg.src = imageData;
+                    avatarImg.style.display = 'block';
+                    if (avatarLetter) avatarLetter.style.display = 'none';
+                    
+                    // Also update nav avatar
+                    if (navAvatar) {
+                        navAvatar.innerHTML = `<img src="${imageData}" alt="Profile" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                    }
+                }
+            }
+            
+            // Setup emoji picker (small smile button)
+            function setupEmojiPicker() {
+                createAvatarUploader('changeEmojiBtn', null, (avatarData) => {
+                    // Only apply emoji, don't override image
+                    const savedImage = localStorage.getItem('profileImage');
+                    if (!savedImage) {
+                        // No image uploaded, show emoji
+                        const avatarLetter = document.getElementById('profileAvatarLetter');
+                        const avatarImg = document.getElementById('profileAvatarImg');
+                        const navAvatar = document.getElementById('navAvatar');
+                        
+                        if (avatarLetter && avatarData.emoji) {
+                            avatarLetter.textContent = avatarData.emoji;
+                            avatarLetter.style.fontSize = '3rem';
+                            avatarLetter.style.display = 'flex';
+                            if (avatarImg) avatarImg.style.display = 'none';
+                        }
+                        
+                        if (navAvatar && avatarData.emoji) {
+                            navAvatar.textContent = avatarData.emoji;
+                            navAvatar.style.fontSize = '1.2rem';
+                        }
+                    }
+                });
+            }
+            
+            // Load saved avatar on page load
+            function loadSavedAvatar() {
+                // First check for uploaded image
+                const savedImage = localStorage.getItem('profileImage');
+                if (savedImage) {
+                    displayProfileImage(savedImage);
+                    return;
+                }
+                
+                // Then check for emoji
+                const savedAvatar = localStorage.getItem('userAvatar');
+                if (savedAvatar) {
+                    const avatarData = JSON.parse(savedAvatar);
+                    const avatarLetter = document.getElementById('profileAvatarLetter');
+                    const navAvatar = document.getElementById('navAvatar');
+                    
+                    if (avatarLetter && avatarData.emoji) {
+                        avatarLetter.textContent = avatarData.emoji;
+                        avatarLetter.style.fontSize = '3rem';
+                    }
+                    
+                    if (navAvatar && avatarData.emoji) {
+                        navAvatar.textContent = avatarData.emoji;
+                    }
+                }
+            }
+
+            async function loadProfilePageData() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Fetch user profile from API
+                    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    let userData;
+                    if (response.ok) {
+                        userData = await response.json();
+                    } else {
+                        // Use localStorage as fallback
+                        const storedUser = localStorage.getItem('user');
+                        userData = storedUser ? JSON.parse(storedUser) : {
+                            firstName: 'User',
+                            lastName: '',
+                            email: 'user@example.com',
+                            volunteerPoints: 0,
+                            eventsCompleted: 0,
+                            volunteerHours: 0,
+                            interests: ''
+                        };
+                    }
+
+                    // Update profile display
+                    updateProfileDisplay(userData);
+                    
+                    // Render badges based on user stats
+                    renderBadges(userData);
+                    
+                    // Render achievements based on user stats
+                    renderAchievements(userData);
+                    
+                    // Render causes
+                    renderCauses(userData.interests);
+
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                    // Use default data
+                    const defaultData = {
+                        firstName: 'User',
+                        lastName: '',
+                        email: 'user@example.com',
+                        volunteerPoints: 0,
+                        eventsCompleted: 0,
+                        volunteerHours: 0,
+                        interests: ''
+                    };
+                    updateProfileDisplay(defaultData);
+                    renderBadges(defaultData);
+                    renderAchievements(defaultData);
+                    renderCauses('');
+                }
+            }
+
+            function updateProfileDisplay(data) {
+                // Update welcome message
+                const welcomeEl = document.getElementById('profileWelcome');
+                if (welcomeEl) {
+                    welcomeEl.textContent = `Welcome back, ${data.firstName || 'Volunteer'}!`;
+                }
+
+                // Update email
+                const emailEl = document.getElementById('profileEmailNew');
+                if (emailEl) {
+                    emailEl.textContent = data.email || '';
+                }
+
+                // Update avatar
+                const avatarLetter = (data.firstName || 'U').charAt(0).toUpperCase();
+                document.querySelectorAll('#profileAvatarNew, #navAvatar').forEach(el => {
+                    if (el) el.textContent = avatarLetter;
+                });
+
+                // Update stats
+                const points = data.volunteerPoints || 0;
+                const events = data.eventsCompleted || 0;
+                const hours = data.volunteerHours || 0;
+
+                // Count earned badges
+                const earnedBadges = countEarnedBadges(data);
+
+                document.getElementById('pointsDisplay').textContent = points.toLocaleString();
+                document.getElementById('eventsDisplay').textContent = events;
+                document.getElementById('hoursDisplay').textContent = hours;
+                document.getElementById('badgesDisplay').textContent = earnedBadges;
+                document.getElementById('coinValue').textContent = points.toLocaleString();
+
+                // Update stat cards
+                document.querySelectorAll('[data-field="coins"]').forEach(el => el.textContent = points.toLocaleString());
+                document.querySelectorAll('[data-field="events"]').forEach(el => el.textContent = events);
+                document.querySelectorAll('[data-field="hours"]').forEach(el => el.textContent = hours);
+            }
+
+            function countEarnedBadges(data) {
+                let count = 0;
+                const points = data.volunteerPoints || 0;
+                const events = data.eventsCompleted || 0;
+                const hours = data.volunteerHours || 0;
+
+                if (events >= 1) count++;
+                if (events >= 5) count++;
+                if (events >= 10) count++;
+                if (hours >= 20) count++;
+                if (hours >= 50) count++;
+                if (points >= 500) count++;
+                if (points >= 1000) count++;
+
+                return count;
+            }
+
+            function renderBadges(data) {
+                const badgeGrid = document.getElementById('badgeGrid');
+                const badgeCountLabel = document.getElementById('badgeCountLabel');
+                
+                if (!badgeGrid) return;
+
+                const points = data.volunteerPoints || 0;
+                const events = data.eventsCompleted || 0;
+                const hours = data.volunteerHours || 0;
+
+                // Determine earned badges based on stats
+                const badges = allBadges.map(badge => {
+                    let earned = false;
+                    switch(badge.id) {
+                        case 'first-step': earned = events >= 1; break;
+                        case 'helping-hand': earned = events >= 5; break;
+                        case 'community-hero': earned = events >= 10; break;
+                        case 'time-giver': earned = hours >= 20; break;
+                        case 'dedicated': earned = hours >= 50; break;
+                        case 'point-collector': earned = points >= 500; break;
+                        case 'impact-maker': earned = points >= 1000; break;
+                        default: earned = false;
+                    }
+                    return { ...badge, earned };
+                });
+
+                const earnedCount = badges.filter(b => b.earned).length;
+                if (badgeCountLabel) {
+                    badgeCountLabel.textContent = `${earnedCount} / ${badges.length} badges`;
+                }
+
+                badgeGrid.innerHTML = badges.map(badge => `
+                    <div class="badge-item ${badge.earned ? 'earned' : 'locked'}">
+                        <div class="badge-icon-wrapper ${badge.earned ? '' : 'locked'}">
+                            <span class="badge-emoji">${badge.earned ? badge.icon : '🔒'}</span>
+                        </div>
+                        <span class="badge-name">${badge.name}</span>
+                        <span class="badge-desc">${badge.description}</span>
+                    </div>
+                `).join('');
+            }
+
+            function renderAchievements(data) {
+                const achievementList = document.getElementById('achievementList');
+                if (!achievementList) return;
+
+                const points = data.volunteerPoints || 0;
+                const events = data.eventsCompleted || 0;
+                const hours = data.volunteerHours || 0;
+
+                // Update achievements with current progress
+                const updatedAchievements = achievements.map(ach => {
+                    let progress = 0;
+                    if (ach.id.startsWith('events')) progress = events;
+                    else if (ach.id.startsWith('hours')) progress = hours;
+                    else if (ach.id.startsWith('points')) progress = points;
+                    
+                    return { ...ach, progress: Math.min(progress, ach.target) };
+                });
+
+                achievementList.innerHTML = updatedAchievements.map(ach => {
+                    const percent = Math.round((ach.progress / ach.target) * 100);
+                    const isCompleted = ach.progress >= ach.target;
+                    const tierColors = {
+                        bronze: '#cd7f32',
+                        silver: '#c0c0c0',
+                        gold: '#ffd700'
+                    };
+                    
+                    return `
+                        <div class="achievement-item ${isCompleted ? 'completed' : ''}">
+                            <div class="achievement-info">
+                                <div class="achievement-header">
+                                    <span class="achievement-name">${ach.name}</span>
+                                    <span class="achievement-tier" style="color: ${tierColors[ach.tier]}">
+                                        ${isCompleted ? '✓' : ach.tier.toUpperCase()}
+                                    </span>
+                                </div>
+                                <span class="achievement-desc">${ach.description}</span>
+                            </div>
+                            <div class="achievement-progress">
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${percent}%; background: ${tierColors[ach.tier]}"></div>
+                                </div>
+                                <span class="progress-text">${ach.progress} / ${ach.target}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function renderCauses(interests) {
+                const causesContainer = document.getElementById('causesChips');
+                if (!causesContainer) return;
+
+                let causes = defaultCauses;
+                if (interests && typeof interests === 'string' && interests.trim()) {
+                    causes = interests.split(',').map(c => c.trim()).filter(c => c);
+                    if (causes.length === 0) causes = defaultCauses;
+                }
+
+                causesContainer.innerHTML = causes.map(cause => `
+                    <span class="cause-chip">${cause}</span>
+                `).join('');
+            }
 
             function setupProfileShare() {
                 const shareBtn = document.getElementById('shareProfileBtn');
@@ -201,7 +576,7 @@
                 shareBtn.addEventListener('click', async () => {
                     const sharePayload = {
                         title: 'Actify Profile',
-                        text: document.getElementById('profileNameNew')?.textContent || 'Check out my Actify profile!',
+                        text: document.getElementById('profileWelcome')?.textContent || 'Check out my Actify profile!',
                         url: window.location.href
                     };
 

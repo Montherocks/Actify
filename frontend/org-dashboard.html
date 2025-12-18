@@ -254,14 +254,19 @@
                 return;
             }
 
-            container.innerHTML = events.map(event => `
-                <div class="org-event-item">
+            container.innerHTML = events.map(event => {
+                const statusClass = event.status === 'active' ? 'approved' : event.status;
+                const statusIcon = event.status === 'active' ? 'check-circle' : (event.status === 'pending' ? 'clock' : 'x-circle');
+                const statusText = event.status === 'active' ? 'Approved' : (event.status.charAt(0).toUpperCase() + event.status.slice(1));
+                
+                return `
+                <div class="org-event-item" id="event-item-${event.id}">
                     <div class="org-event-info">
                         <h3>${event.title}</h3>
                         <div class="event-meta">
                             <span>${new Date(event.date).toLocaleDateString()}</span>
-                            <span>${event.time}</span>
-                            <span>${event.volunteers || 0} volunteers</span>
+                            <span>${event.time || event.endTime || 'TBD'}</span>
+                            <span>${event.volunteersRegistered || 0} volunteers</span>
                         </div>
                         <p class="event-description">${event.description}</p>
                     </div>
@@ -270,17 +275,91 @@
                             <div class="reward-label">Reward</div>
                             <div class="reward-value">${event.pointsReward} VP</div>
                         </div>
-                        <div class="status-badge ${event.status}">
-                            <i data-lucide="${event.status === 'approved' ? 'check-circle' : 'clock'}" 
-                               style="width: 0.875rem; height: 0.875rem;"></i>
-                            ${event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                        <div class="status-badge ${statusClass}">
+                            <i data-lucide="${statusIcon}" style="width: 0.875rem; height: 0.875rem;"></i>
+                            ${statusText}
                         </div>
-                        <a href="org-event-detail.html?id=${event.id}">
-                            <button class="btn btn-outline btn-sm">View</button>
-                        </a>
+                        <button class="btn btn-outline btn-sm" onclick="toggleEventDetails(${event.id})">
+                            <span id="view-btn-text-${event.id}">View Details</span>
+                            <i data-lucide="chevron-down" id="view-btn-icon-${event.id}" style="width: 1rem; height: 1rem; margin-left: 0.25rem; transition: transform 0.3s;"></i>
+                        </button>
                     </div>
                 </div>
-            `).join('');
+                <div class="event-details-panel" id="event-details-${event.id}" style="display: none;">
+                    <div class="details-loading">Loading details...</div>
+                </div>
+            `}).join('');
+            lucide.createIcons();
+        }
+
+        // Toggle event details panel
+        async function toggleEventDetails(eventId) {
+            const panel = document.getElementById(`event-details-${eventId}`);
+            const icon = document.getElementById(`view-btn-icon-${eventId}`);
+            const btnText = document.getElementById(`view-btn-text-${eventId}`);
+            
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+                btnText.textContent = 'Hide Details';
+                
+                // Load event details and volunteers
+                await loadEventDetails(eventId, panel);
+            } else {
+                panel.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+                btnText.textContent = 'View Details';
+            }
+        }
+
+        // Load event details
+        async function loadEventDetails(eventId, panel) {
+            try {
+                const response = await fetchOrgWithAuth(`${API_BASE_URL}/org/events/${eventId}/volunteers`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderEventDetails(data, panel);
+                } else {
+                    panel.innerHTML = `<div class="details-error">Failed to load details</div>`;
+                }
+            } catch (error) {
+                console.error('Error loading event details:', error);
+                panel.innerHTML = `<div class="details-error">Error loading details</div>`;
+            }
+        }
+
+        // Render event details panel
+        function renderEventDetails(data, panel) {
+            const volunteers = data.volunteers || [];
+            
+            panel.innerHTML = `
+                <div class="details-content">
+                    <div class="details-header">
+                        <h4><i data-lucide="users" style="width: 1rem; height: 1rem;"></i> Registered Volunteers (${volunteers.length}/${data.capacity || 'Unlimited'})</h4>
+                    </div>
+                    ${volunteers.length === 0 ? `
+                        <div class="no-volunteers">
+                            <i data-lucide="user-x" style="width: 2rem; height: 2rem; color: var(--text-muted);"></i>
+                            <p>No volunteers registered yet</p>
+                        </div>
+                    ` : `
+                        <div class="volunteers-list">
+                            ${volunteers.map(v => `
+                                <div class="volunteer-item">
+                                    <div class="volunteer-avatar">${v.name.charAt(0).toUpperCase()}</div>
+                                    <div class="volunteer-info">
+                                        <div class="volunteer-name">${v.name}</div>
+                                        <div class="volunteer-email">${v.email}</div>
+                                    </div>
+                                    <div class="volunteer-status ${v.attendanceConfirmed ? 'confirmed' : 'pending'}">
+                                        ${v.attendanceConfirmed ? 'Confirmed' : 'Registered'}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
             lucide.createIcons();
         }
 
