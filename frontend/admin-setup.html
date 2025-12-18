@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Setup | Actify</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .setup-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 2rem;
+        }
+
+        .setup-box {
+            background: white;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .setup-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .setup-icon i {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        .setup-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .setup-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .warning-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: #991b1b;
+        }
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .setup-form .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .setup-form .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .setup-form .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .setup-form .form-input:focus {
+            outline: none;
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .setup-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .setup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.4);
+        }
+
+        .setup-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .setup-footer a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .setup-footer a:hover {
+            color: #ef4444;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .success-message {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="setup-container">
+        <div class="setup-box">
+            <div class="setup-header">
+                <div class="setup-icon">
+                    <i data-lucide="shield-alert"></i>
+                </div>
+                <h1 class="setup-title">Admin Setup</h1>
+                <p class="setup-subtitle">Create the first administrator account</p>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Security Notice</strong>
+                This page is for initial admin setup only. After creating an admin, this page should be disabled or protected.
+                You need the secret setup key to create an admin account.
+            </div>
+
+            <div id="successMessage" class="success-message" style="display: none;">
+                ✅ Admin account created successfully! Redirecting to login...
+            </div>
+
+            <form id="adminSetupForm" class="setup-form">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="username" class="form-input" 
+                           placeholder="admin" required minlength="3" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="email" class="form-input" 
+                           placeholder="admin@actify.com" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="fullName" class="form-input" 
+                           placeholder="Administrator" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" 
+                           placeholder="Strong password" required minlength="6" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-input" 
+                           placeholder="Confirm password" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Setup Secret Key</label>
+                    <input type="password" id="secretKey" class="form-input" 
+                           placeholder="Enter the secret setup key" required />
+                    <small style="color: #64748b; font-size: 0.75rem;">
+                        Hint: ACTIFY_ADMIN_2024_SECRET
+                    </small>
+                </div>
+
+                <button type="submit" class="setup-btn">Create Admin Account</button>
+            </form>
+
+            <div class="setup-footer">
+                <a href="admin-login.html">← Back to Admin Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        function showError(inputId, message) {
+            const input = document.getElementById(inputId);
+            input.style.borderColor = '#ef4444';
+            
+            const existingError = input.parentElement.querySelector('.error-message');
+            if (existingError) existingError.remove();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            input.parentElement.appendChild(errorDiv);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.form-input').forEach(el => {
+                el.style.borderColor = '#e5e7eb';
+            });
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+        }
+
+        document.getElementById('adminSetupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const fullName = document.getElementById('fullName').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const secretKey = document.getElementById('secretKey').value;
+
+            // Validation
+            if (username.length < 3) {
+                showError('username', 'Username must be at least 3 characters');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('password', 'Password must be at least 6 characters');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('confirmPassword', 'Passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/setup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        fullName: fullName || username,
+                        password,
+                        secretKey
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('adminSetupForm').style.display = 'none';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'admin-login.html';
+                    }, 2000);
+                } else {
+                    showError('secretKey', data.message || 'Setup failed');
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                showError('username', 'Unable to connect to server');
+            }
+        });
+    </script>
+</body>
+
+</html>

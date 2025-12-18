@@ -6,7 +6,7 @@ async function loginUser(email, password) {
     try {
         console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
         console.log('Email:', email);
-
+        
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -18,7 +18,7 @@ async function loginUser(email, password) {
         console.log('Response status:', response.status);
         const data = await response.json();
         console.log('Response data:', data);
-
+        
         if (response.ok && data.success) {
             localStorage.setItem('user', JSON.stringify(data));
             localStorage.setItem('token', data.token);
@@ -48,24 +48,167 @@ async function registerUser(formData) {
             })
         });
 
-        if (response.ok) {
-            const data = await response.json();
+        const data = await response.json();
+        
+        if (response.ok && data.success !== false) {
             localStorage.setItem('user', JSON.stringify(data));
             localStorage.setItem('token', data.token);
             window.location.href = 'dashboard.html';
         } else {
-            alert('Registration failed. Please try again.');
+            // Clean up error message
+            let errorMsg = data.message || 'Registration failed';
+            if (errorMsg.includes('SQL') || errorMsg.includes('ERROR') || errorMsg.includes('column')) {
+                errorMsg = 'Server configuration error. Please contact support or try again later.';
+            } else if (errorMsg.includes('already') || errorMsg.includes('exists') || errorMsg.includes('duplicate')) {
+                errorMsg = 'This email is already registered. Please use a different email or login.';
+            }
+            
+            if (typeof showError === 'function') {
+                showError('email', errorMsg);
+            } else {
+                console.error('Registration failed:', data.message);
+            }
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('An error occurred during registration.');
+        if (typeof showError === 'function') {
+            showError('email', 'Unable to connect to server. Please try again.');
+        }
     }
 }
 
 function logout() {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     window.location.href = 'login.html';
+}
+
+// ===== Organization Authentication Functions =====
+async function loginOrganization(email, password) {
+    try {
+        console.log('Attempting org login to:', `${API_BASE_URL}/org/auth/login`);
+        
+        const response = await fetch(`${API_BASE_URL}/org/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            localStorage.setItem('organization', JSON.stringify(data));
+            localStorage.setItem('orgToken', data.token);
+            localStorage.setItem('orgId', data.orgId);
+            window.location.href = 'org-dashboard.html';
+        } else {
+            alert(data.message || 'Login failed. Please check your credentials.');
+        }
+    } catch (error) {
+        console.error('Organization login error:', error);
+        // Demo fallback - allow login with demo credentials
+        if (email === 'org@actify.app' && password === 'org123') {
+            const demoOrg = {
+                success: true,
+                orgId: 1,
+                name: 'Green Earth Foundation',
+                email: 'org@actify.app',
+                token: 'demo-org-token'
+            };
+            localStorage.setItem('organization', JSON.stringify(demoOrg));
+            localStorage.setItem('orgToken', 'demo-org-token');
+            localStorage.setItem('orgId', '1');
+            window.location.href = 'org-dashboard.html';
+        } else {
+            alert('An error occurred during login. Make sure the backend is running.');
+        }
+    }
+}
+
+async function registerOrganization(orgData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/org/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orgData)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success !== false) {
+            localStorage.setItem('organization', JSON.stringify(data));
+            localStorage.setItem('orgToken', data.token);
+            localStorage.setItem('orgId', data.orgId);
+            window.location.href = 'org-dashboard.html';
+        } else {
+            // Clean up error message - remove SQL/technical details
+            let errorMsg = data.message || 'Registration failed';
+            if (errorMsg.includes('SQL') || errorMsg.includes('ERROR') || errorMsg.includes('column')) {
+                errorMsg = 'Server configuration error. Please contact support or try again later.';
+            } else if (errorMsg.includes('already') || errorMsg.includes('exists') || errorMsg.includes('duplicate')) {
+                errorMsg = 'This email is already registered. Please use a different email or login.';
+            }
+            
+            if (typeof showError === 'function') {
+                showError('email', errorMsg);
+            } else {
+                console.error('Registration failed:', data.message);
+            }
+        }
+    } catch (error) {
+        console.error('Organization registration error:', error);
+        // Demo fallback - register locally when server is unavailable
+        const demoOrg = {
+            success: true,
+            orgId: Date.now(),
+            name: orgData.name,
+            email: orgData.email,
+            token: 'demo-org-token-' + Date.now()
+        };
+        localStorage.setItem('organization', JSON.stringify(demoOrg));
+        localStorage.setItem('orgToken', demoOrg.token);
+        localStorage.setItem('orgId', demoOrg.orgId.toString());
+        window.location.href = 'org-dashboard.html';
+    }
+}
+
+function logoutOrganization() {
+    localStorage.removeItem('organization');
+    localStorage.removeItem('orgToken');
+    localStorage.removeItem('orgId');
+    window.location.href = 'login.html';
+}
+
+// ===== Organization API Helper Functions =====
+async function fetchOrgWithAuth(url, options = {}) {
+    const token = localStorage.getItem('orgToken');
+    
+    if (!token) {
+        throw new Error('No organization authentication token');
+    }
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+        'Authorization': `Bearer ${token}`
+    };
+
+    const response = await fetch(url, {
+        ...options,
+        headers,
+    });
+
+    if (response.status === 401) {
+        logoutOrganization();
+        throw new Error('Unauthorized');
+    }
+
+    return response;
 }
 
 function checkAuth() {
@@ -79,12 +222,12 @@ function checkAuth() {
 // ===== API Helper Functions =====
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem('token');
-
+    
     // No demo mode - always use real API
     if (!token) {
         throw new Error('No authentication token');
     }
-
+    
     const headers = {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -111,22 +254,18 @@ async function fetchWithAuth(url, options = {}) {
 async function loadDashboardData() {
     try {
         checkAuth();
-
+        
         // Fetch fresh user profile data from backend
         const profileResponse = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
         if (profileResponse.ok) {
             const profileData = await profileResponse.json();
-            const fullNameParts = [profileData.firstName, profileData.lastName].filter(Boolean);
-            const fullName = fullNameParts.length
-                ? fullNameParts.join(' ')
-                : (profileData.name || profileData.email || 'Impact Volunteer');
-
+            
             // Update localStorage with fresh data
             const updatedUser = {
                 id: profileData.id,
                 firstName: profileData.firstName,
                 lastName: profileData.lastName,
-                name: fullName,
+                name: `${profileData.firstName} ${profileData.lastName}`,
                 email: profileData.email,
                 volunteerPoints: profileData.volunteerPoints,
                 eventsCompleted: profileData.eventsCompleted,
@@ -138,14 +277,14 @@ async function loadDashboardData() {
                 interests: profileData.interests
             };
             localStorage.setItem('user', JSON.stringify(updatedUser));
-
+            
             // Update dynamic greeting with first name only
             const userNameEl = document.getElementById('userName');
             if (userNameEl) {
                 userNameEl.textContent = profileData.firstName || 'User';
             }
-
-            updateDashboardUI(profileData);
+            
+            await updateDashboardUI(profileData);
         } else {
             // Fallback to localStorage data if API fails
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -154,9 +293,9 @@ async function loadDashboardData() {
                 const firstName = user.firstName || user.name?.split(' ')[0] || user.email?.split('@')[0] || 'User';
                 userNameEl.textContent = firstName;
             }
-
+            
             // Use mock data if API fails
-            updateDashboardUI({
+            await updateDashboardUI({
                 volunteerPoints: user.volunteerPoints || 2850,
                 eventsCompleted: user.eventsCompleted || 12,
                 volunteerHours: user.volunteerHours || 48,
@@ -166,7 +305,7 @@ async function loadDashboardData() {
     } catch (error) {
         console.error('Error loading dashboard:', error);
         // Use mock data
-        updateDashboardUI({
+        await updateDashboardUI({
             volunteerPoints: 3450,
             eventsCompleted: 18,
             hoursVolunteered: 72,
@@ -175,7 +314,7 @@ async function loadDashboardData() {
     }
 }
 
-function updateDashboardUI(data) {
+async function updateDashboardUI(data) {
     // Update points
     const pointsEl = document.getElementById('userPoints');
     if (pointsEl) {
@@ -198,14 +337,14 @@ function updateDashboardUI(data) {
     if (data.badges && data.badges.length > 0) {
         const badgesContainer = document.getElementById('badgesContainer');
         if (badgesContainer) {
-            const badgeEmojis = {
+            const badgeEmojis = { 
                 "First Steps": "🏆",
                 "Community Hero": "🦸",
                 "Green Guardian": "🌱",
                 "Helper": "🤝",
                 "Champion": "🏅"
             };
-
+            
             badgesContainer.innerHTML = data.badges.map(badge => `
                 <div class="badge-item">
                     <div class="badge-icon">${badgeEmojis[badge] || '⭐'}</div>
@@ -214,6 +353,67 @@ function updateDashboardUI(data) {
             `).join('');
         }
     }
+    
+    // Load and display upcoming events
+    await loadUpcomingEvents();
+}
+
+// Load and display upcoming events on dashboard
+async function loadUpcomingEvents() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/events`);
+        if (response.ok) {
+            const events = await response.json();
+            // Filter only active events and sort by date
+            const activeEvents = events
+                .filter(event => event.status === 'active')
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .slice(0, 5); // Show max 5 upcoming events
+            
+            const upcomingEventsEl = document.getElementById('upcomingEvents');
+            if (upcomingEventsEl) {
+                if (activeEvents.length === 0) {
+                    upcomingEventsEl.innerHTML = `
+                        <div class="no-events" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <i data-lucide="calendar-x" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
+                            <p>No upcoming events available</p>
+                            <a href="events.html" class="btn btn-sm btn-outline" style="margin-top: 1rem;">Browse Events</a>
+                        </div>
+                    `;
+                } else {
+                    upcomingEventsEl.innerHTML = activeEvents.map(event => `
+                        <div class="event-list-item">
+                            <div class="event-info">
+                                <h4 class="event-name">${event.title}</h4>
+                                <p class="event-details">
+                                    <i data-lucide="calendar" class="icon-sm"></i>
+                                    ${formatEventDate(event.date)}${event.time ? ' • ' + event.time : ''}
+                                </p>
+                                <p class="event-details">
+                                    <i data-lucide="map-pin" class="icon-sm"></i>
+                                    ${event.location}${event.city ? ', ' + event.city : ''}
+                                </p>
+                            </div>
+                            <div class="event-reward">
+                                <i data-lucide="zap" class="icon-sm"></i>
+                                <span>${event.pointsReward || 100} coins</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                lucide.createIcons();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading upcoming events:', error);
+    }
+}
+
+// Format event date for display
+function formatEventDate(dateStr) {
+    if (!dateStr) return 'TBD';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // ===== Events Functions =====
@@ -236,16 +436,18 @@ async function registerForEvent(eventId) {
             method: 'POST'
         });
 
-        if (response.ok) {
-            alert('Successfully registered for event!');
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            alert(data.message || 'Successfully registered for event!');
             return true;
         } else {
-            alert('Failed to register for event.');
+            alert(data.message || 'Failed to register for event.');
             return false;
         }
     } catch (error) {
         console.error('Error registering for event:', error);
-        alert('An error occurred while registering.');
+        alert('An error occurred while registering. Please make sure you are logged in.');
         return false;
     }
 }
@@ -267,10 +469,10 @@ async function loadLeaderboard() {
 // ===== Utility Functions =====
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
     });
 }
 
@@ -303,22 +505,18 @@ function updateUserAvatar() {
 async function loadProfileData() {
     try {
         checkAuth();
-
+        
         // Fetch fresh user profile data from backend (same as dashboard)
         const profileResponse = await fetchWithAuth(`${API_BASE_URL}/users/profile`);
         if (profileResponse.ok) {
             const profileData = await profileResponse.json();
-            const fullNameParts = [profileData.firstName, profileData.lastName].filter(Boolean);
-            const fullName = fullNameParts.length
-                ? fullNameParts.join(' ')
-                : (profileData.name || profileData.email || 'Impact Volunteer');
-
+            
             // Update localStorage with fresh data
             const updatedUser = {
                 id: profileData.id,
                 firstName: profileData.firstName,
                 lastName: profileData.lastName,
-                name: fullName,
+                name: `${profileData.firstName} ${profileData.lastName}`,
                 email: profileData.email,
                 volunteerPoints: profileData.volunteerPoints,
                 eventsCompleted: profileData.eventsCompleted,
@@ -330,10 +528,37 @@ async function loadProfileData() {
                 interests: profileData.interests
             };
             localStorage.setItem('user', JSON.stringify(updatedUser));
-
+            
+            // Update profile page elements with real data
+            const profileNameEl = document.getElementById('profileNameNew');
+            const profileEmailEl = document.getElementById('profileEmailNew');
+            
+            if (profileNameEl && profileData.firstName) {
+                profileNameEl.textContent = `Welcome, ${profileData.firstName}!`;
+            }
+            if (profileEmailEl) {
+                profileEmailEl.textContent = profileData.email;
+            }
+            
+            // Update avatar with first letter
+            const avatarLetter = profileData.firstName.charAt(0).toUpperCase();
+            const avatarEls = document.querySelectorAll('#profileAvatarNew, #navAvatar');
+            avatarEls.forEach(el => {
+                if (el) el.textContent = avatarLetter;
+            });
+            
+            // Update stats
+            const pointsEl = document.getElementById('pointsDisplay');
+            const eventsEl = document.getElementById('eventsDisplay');
+            const hoursEl = document.getElementById('hoursDisplay');
+            const coinEl = document.getElementById('coinValue');
+            
+            if (pointsEl) pointsEl.textContent = profileData.volunteerPoints.toLocaleString();
+            if (eventsEl) eventsEl.textContent = profileData.eventsCompleted;
+            if (hoursEl) hoursEl.textContent = profileData.volunteerHours;
+            if (coinEl) coinEl.textContent = profileData.volunteerPoints.toLocaleString();
+            
             updateProfileUI(profileData);
-            updateUserCoins();
-            updateUserAvatar();
         } else {
             // API failed - redirect to login
             console.error('Failed to load profile data from API');
@@ -345,20 +570,15 @@ async function loadProfileData() {
         console.error('Error loading profile:', error);
         // Use mock data
         updateProfileUI({
-            firstName: 'Alex',
-            lastName: 'Thompson',
-            email: 'alex@example.com',
-            volunteerPoints: 2850,
-            eventsCompleted: 12,
-            volunteerHours: 48,
-            createdAt: '2024-03-15T00:00:00Z',
-            badges: 4,
-            interests: 'Community Service, Environment, Education'
+            volunteerPoints: 3450,
+            eventsCompleted: 18,
+            hoursVolunteered: 72,
+            badges: 5
         });
     }
 }
 
-function updateProfileLegacyUI(data) {
+function updateProfileUI(data) {
     // Update stats
     const elements = {
         totalPoints: document.getElementById('totalPoints'),
@@ -368,26 +588,26 @@ function updateProfileLegacyUI(data) {
         hoursContributed: document.getElementById('hoursContributed'),
         badgesEarned: document.getElementById('badgesEarned')
     };
-
+    
     if (elements.totalPoints) elements.totalPoints.textContent = data.volunteerPoints?.toLocaleString() || '0';
     if (elements.eventsCompleted) elements.eventsCompleted.textContent = data.eventsCompleted || '0';
     if (elements.eventsAttended) elements.eventsAttended.textContent = data.eventsCompleted || '0';
     if (elements.hoursVolunteered) elements.hoursVolunteered.textContent = data.hoursVolunteered || '0';
     if (elements.hoursContributed) elements.hoursContributed.textContent = data.hoursVolunteered || '0';
     if (elements.badgesEarned) elements.badgesEarned.textContent = data.badges || '0';
-
+    
     // Update progress bars
     const eventProgress = Math.min((data.eventsCompleted || 0) / 10 * 100, 100);
     const timeProgress = Math.min((data.hoursVolunteered || 0) / 50 * 100, 100);
     const badgeProgress = Math.min((data.badges || 0) / 15 * 100, 100);
-
+    
     const eventProgressBar = document.getElementById('eventProgressBar');
     const timeProgressBar = document.getElementById('timeProgressBar');
     const badgeProgressBar = document.getElementById('badgeProgressBar');
     const eventProgressText = document.getElementById('eventProgress');
     const timeProgressText = document.getElementById('timeProgress');
     const badgeProgressText = document.getElementById('badgeProgress');
-
+    
     if (eventProgressBar) eventProgressBar.style.width = eventProgress + '%';
     if (timeProgressBar) timeProgressBar.style.width = timeProgress + '%';
     if (badgeProgressBar) badgeProgressBar.style.width = badgeProgress + '%';
@@ -401,238 +621,3 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserCoins();
     updateUserAvatar();
 });
-
-function updateProfileUI(rawData) {
-    if (!rawData) return;
-
-    updateProfileLegacyUI(rawData);
-
-    const points = Number(rawData.volunteerPoints ?? rawData.points ?? 0);
-    const events = Number(rawData.eventsCompleted ?? rawData.events ?? 0);
-    const hours = Number(rawData.volunteerHours ?? rawData.hoursVolunteered ?? 0);
-    const fallbackBadgeCount = Number(rawData.badges ?? rawData.badgesEarned ?? 0);
-
-    const fullNameFromPayload = (rawData.name || '').trim();
-    const combinedName = [rawData.firstName, rawData.lastName].filter(Boolean).join(' ').trim();
-    const fullName = combinedName || fullNameFromPayload || rawData.email || 'Impact Volunteer';
-    const firstName = rawData.firstName || fullName.split(' ')[0] || 'Volunteer';
-    const email = rawData.email || '';
-    const joinDateLabel = rawData.createdAt ? `Member since ${formatDate(rawData.createdAt)}` : '';
-    const avatarInitial = getAvatarInitial(firstName, rawData.lastName, fullName);
-
-    const insights = deriveProfileInsights({
-        ...rawData,
-        volunteerPoints: points,
-        eventsCompleted: events,
-        volunteerHours: hours,
-        fallbackBadgeCount
-    });
-
-    setTextContent('profileWelcome', `Welcome back, ${firstName}!`);
-    setTextContent('profileNameNew', fullName);
-    setTextContent('profileEmailNew', email);
-    setTextContent('profileJoinDate', joinDateLabel);
-
-    setTextContent('pointsDisplay', points.toLocaleString());
-    setTextContent('eventsDisplay', events);
-    setTextContent('hoursDisplay', hours);
-    setTextContent('badgesDisplay', insights.earnedBadgeCount);
-
-    setDataField('coins', points.toLocaleString());
-    setDataField('events', events);
-    setDataField('hours', hours);
-    setDataField('badges', insights.earnedBadgeCount);
-
-    setTextContent('coinValue', points.toLocaleString());
-    setTextContent('badgeCountLabel', `${insights.earnedBadgeCount} / ${insights.badges.length} badges`);
-
-    renderBadges(insights.badges);
-    renderAchievements(insights.achievements);
-    renderCauses(insights.causes);
-
-    const avatarEls = document.querySelectorAll('#profileAvatarNew, #navAvatar');
-    avatarEls.forEach(el => {
-        if (el) el.textContent = avatarInitial;
-    });
-
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-    }
-}
-
-function deriveProfileInsights(data) {
-    const points = Number(data.volunteerPoints ?? 0);
-    const events = Number(data.eventsCompleted ?? 0);
-    const hours = Number(data.volunteerHours ?? 0);
-    const referenceDate = data.updatedAt || data.createdAt || new Date().toISOString();
-
-    const badges = [
-        {
-            id: 'first-steps',
-            name: 'First Steps',
-            icon: '🌱',
-            description: 'Completed your first event',
-            earned: events >= 1,
-        },
-        {
-            id: 'community-hero',
-            name: 'Community Hero',
-            icon: '🦸',
-            description: 'Completed 10 community events',
-            earned: events >= 10,
-        },
-        {
-            id: 'green-guardian',
-            name: 'Green Guardian',
-            icon: '🌿',
-            description: 'Contributed 25 volunteer hours',
-            earned: hours >= 25,
-        },
-        {
-            id: 'consistent-contributor',
-            name: 'Consistent Contributor',
-            icon: '⭐',
-            description: 'Earned 2,500 Impact Coins',
-            earned: points >= 2500,
-        },
-    ].map(badge => ({
-        ...badge,
-        status: badge.earned ? 'Unlocked' : 'Locked',
-        dateLabel: badge.earned ? formatDate(referenceDate) : 'Keep going',
-    }));
-
-    const achievements = [
-        {
-            title: 'Bronze Tier',
-            description: 'Earn 1,000 Impact Coins',
-            target: 1000,
-            current: points,
-        },
-        {
-            title: 'Silver Tier',
-            description: 'Earn 2,500 Impact Coins',
-            target: 2500,
-            current: points,
-        },
-        {
-            title: 'Gold Tier',
-            description: 'Earn 5,000 Impact Coins',
-            target: 5000,
-            current: points,
-        },
-        {
-            title: 'Impact Master',
-            description: 'Complete 50 volunteer events',
-            target: 50,
-            current: events,
-        },
-    ].map(achievement => {
-        const progress = Math.min(100, Math.round((achievement.current / achievement.target) * 100));
-        return {
-            ...achievement,
-            progress,
-            progressLabel: `${Math.min(achievement.current, achievement.target).toLocaleString()} / ${achievement.target.toLocaleString()}`,
-        };
-    });
-
-    let causes = [];
-    if (typeof data.interests === 'string' && data.interests.trim().length) {
-        causes = data.interests.split(',').map(item => item.trim()).filter(Boolean);
-    } else if (Array.isArray(data.causesSupported)) {
-        causes = data.causesSupported;
-    }
-    if (!causes.length) {
-        causes = ['Community Service', 'Environment', 'Education'];
-    }
-
-    const derivedBadgeCount = badges.filter(badge => badge.earned).length;
-    const fallbackCount = Number(data.fallbackBadgeCount || 0);
-    const earnedBadgeCount = Math.max(derivedBadgeCount, fallbackCount);
-
-    return { badges, achievements, causes, earnedBadgeCount };
-}
-
-function renderBadges(badges = []) {
-    const container = document.getElementById('badgeGrid');
-    if (!container) return;
-
-    if (!badges.length) {
-        container.innerHTML = '<p class="empty-state">No badges yet. Join an event to earn your first one!</p>';
-        return;
-    }
-
-    container.innerHTML = badges.map(badge => `
-        <div class="badge-card ${badge.earned ? '' : 'badge-card-locked'}" onclick="const emoji = this.querySelector('.badge-emoji'); emoji.classList.remove('animate-burst'); void emoji.offsetWidth; emoji.classList.add('animate-burst');">
-            <div class="badge-emoji">${badge.icon}</div>
-            <div class="badge-copy">
-                <h3>${badge.name}</h3>
-                <p>${badge.description}</p>
-                <span>${badge.earned ? `Unlocked • ${badge.dateLabel}` : 'Locked'}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-function renderAchievements(achievements = []) {
-    const container = document.getElementById('achievementList');
-    if (!container) return;
-
-    if (!achievements.length) {
-        container.innerHTML = '<p class="empty-state">Track progress once goals are available.</p>';
-        return;
-    }
-
-    container.innerHTML = achievements.map(achievement => `
-        <div class="achievement-card">
-            <div class="achievement-header">
-                <div>
-                    <h3>${achievement.title}</h3>
-                    <p>${achievement.description}</p>
-                </div>
-                <span>${achievement.progress}%</span>
-            </div>
-            <div class="progress-bar-new">
-                <div class="progress-fill-new" style="width: ${achievement.progress}%"></div>
-            </div>
-            <p class="achievement-target">${achievement.progressLabel}</p>
-        </div>
-    `).join('');
-}
-
-function renderCauses(causes = []) {
-    const container = document.getElementById('causesChips');
-    if (!container) return;
-
-    if (!causes.length) {
-        container.innerHTML = '<p class="empty-state">Tell us what causes you care about to personalize your feed.</p>';
-        return;
-    }
-
-    container.innerHTML = causes.map(cause => `
-        <div class="cause-chip">
-            <i data-lucide="sparkles"></i>
-            ${cause}
-        </div>
-    `).join('');
-}
-
-function setTextContent(id, value) {
-    const el = document.getElementById(id);
-    if (el !== null && el !== undefined && value !== undefined && value !== null) {
-        el.textContent = value;
-    }
-}
-
-function setDataField(field, value) {
-    const targets = document.querySelectorAll(`[data-field="${field}"]`);
-    targets.forEach(el => {
-        if (value !== undefined && value !== null) {
-            el.textContent = value;
-        }
-    });
-}
-
-function getAvatarInitial(firstName, lastName, fallback) {
-    const preferred = firstName || fallback || 'U';
-    return preferred.charAt(0).toUpperCase();
-}

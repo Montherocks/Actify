@@ -213,15 +213,15 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' AND NEW.status = 'registered' THEN
         UPDATE events 
-        SET current_participants = current_participants + 1 
+        SET volunteers_registered = COALESCE(volunteers_registered, 0) + 1 
         WHERE id = NEW.event_id;
     ELSIF TG_OP = 'DELETE' AND OLD.status = 'registered' THEN
         UPDATE events 
-        SET current_participants = current_participants - 1 
+        SET volunteers_registered = GREATEST(COALESCE(volunteers_registered, 0) - 1, 0)
         WHERE id = OLD.event_id;
     ELSIF TG_OP = 'UPDATE' AND OLD.status = 'registered' AND NEW.status = 'cancelled' THEN
         UPDATE events 
-        SET current_participants = current_participants - 1 
+        SET volunteers_registered = GREATEST(COALESCE(volunteers_registered, 0) - 1, 0)
         WHERE id = NEW.event_id;
     END IF;
     RETURN NEW;

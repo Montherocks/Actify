@@ -7,6 +7,9 @@
     <title>Create Event | Actify Org</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/org.css">
+    <link rel="stylesheet" href="css/image-picker.css">
+    <!-- Leaflet for map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -102,7 +105,7 @@
 
             <!-- Location -->
             <div class="form-group">
-                <label class="form-label">Location *</label>
+                <label class="form-label">Location Name *</label>
                 <input type="text" id="location" name="location" class="form-input" 
                        placeholder="e.g., Central Park, Downtown" required />
             </div>
@@ -120,6 +123,36 @@
                 </div>
             </div>
 
+            <!-- Map Location Picker -->
+            <div class="form-group">
+                <label class="form-label">Pin Location on Map *</label>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+                    Click on the map to set the exact event location. This helps volunteers find your event.
+                </p>
+                
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button type="button" id="useMyLocationBtn" onclick="useCurrentLocation()" 
+                            class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="navigation" style="width: 16px; height: 16px;"></i>
+                        Use My Location
+                    </button>
+                </div>
+                
+                <div id="locationPickerMap" style="height: 300px; border-radius: 0.5rem; border: 2px solid #e2e8f0; margin-bottom: 1rem;"></div>
+                
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <strong style="color: #64748b;">Coordinates:</strong>
+                            <span id="selectedCoordinates" style="color: #10b981;">Click on map to select</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+            </div>
+
             <!-- Cause Category -->
             <div class="form-group">
                 <label class="form-label">Cause Category *</label>
@@ -132,9 +165,16 @@
                     <option value="animals">Animal Welfare</option>
                     <option value="elderly">Elderly Care</option>
                     <option value="youth">Youth Development</option>
-                    <option value="disaster">Disaster Relief</option>
+                    <option value="disaster-relief">Disaster Relief</option>
                     <option value="other">Other</option>
                 </select>
+            </div>
+
+            <!-- Event Image Selection -->
+            <div class="form-group">
+                <div id="imagePickerContainer" class="image-picker-container">
+                    <!-- Image picker will be rendered here -->
+                </div>
             </div>
 
             <!-- Volunteer Capacity & Reward -->
@@ -196,7 +236,11 @@
         </form>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
+    <script src="js/image-library.js"></script>
+    <script src="js/location-picker.js"></script>
     <script>
         lucide.createIcons();
 
@@ -211,8 +255,10 @@
             return true;
         }
 
-        // Initialize
-        if (checkOrgAuth()) {
+        // Initialize everything after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkOrgAuth()) return;
+            
             const org = JSON.parse(localStorage.getItem('organization'));
             
             // Update avatar
@@ -231,7 +277,35 @@
             const dateInput = document.getElementById('date');
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
-        }
+
+            // Initialize image picker with default category
+            const causeSelect = document.getElementById('cause');
+            createImagePicker('imagePickerContainer', '', causeSelect.value);
+            
+            // Add image upload section
+            createImageUploadSection('imagePickerContainer');
+
+            // Update image picker when cause changes
+            causeSelect.addEventListener('change', function() {
+                createImagePicker('imagePickerContainer', document.getElementById('selectedImageUrl')?.value || '', this.value);
+                createImageUploadSection('imagePickerContainer');
+            });
+
+            // Initialize location picker map after a small delay to ensure container is rendered
+            setTimeout(function() {
+                console.log('Initializing location picker map...');
+                if (typeof L !== 'undefined') {
+                    try {
+                        initLocationPicker('locationPickerMap');
+                        console.log('Location picker initialized successfully');
+                    } catch (error) {
+                        console.error('Error initializing location picker:', error);
+                    }
+                } else {
+                    console.error('Leaflet library not loaded!');
+                }
+            }, 100);
+        });
 
         // Calculate duration automatically
         const startTime = document.getElementById('startTime');
@@ -255,6 +329,17 @@
         document.getElementById('createEventForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            const selectedImageUrl = document.getElementById('selectedImageUrl')?.value;
+            const latitude = document.getElementById('latitude')?.value;
+            const longitude = document.getElementById('longitude')?.value;
+
+            // Validate location is selected
+            if (!latitude || !longitude) {
+                alert('Please select a location on the map for your event.');
+                document.getElementById('locationPickerMap').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
             const eventData = {
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
@@ -265,13 +350,16 @@
                 location: document.getElementById('location').value,
                 city: document.getElementById('city').value,
                 state: document.getElementById('state').value,
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
                 cause: document.getElementById('cause').value,
                 capacity: parseInt(document.getElementById('capacity').value),
                 pointsReward: parseInt(document.getElementById('pointsReward').value),
                 skills: document.getElementById('skills').value,
                 requirements: document.getElementById('requirements').value,
                 contactEmail: document.getElementById('contactEmail').value,
-                contactPhone: document.getElementById('contactPhone').value
+                contactPhone: document.getElementById('contactPhone').value,
+                imageUrl: selectedImageUrl || null
             };
 
             try {

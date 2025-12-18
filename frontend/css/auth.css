@@ -5,6 +5,35 @@
     animation: fadeInUp 0.5s ease-out;
 }
 
+/* Back to Homepage Link */
+.back-to-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--emerald-600);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+    transition: all 0.2s ease;
+}
+
+.back-to-home:hover {
+    color: var(--emerald-700);
+    gap: 0.75rem;
+}
+
+.back-to-home i {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.back-to-home:hover i {
+    transform: translateX(-3px);
+}
+
 .auth-box {
     animation: fadeInUp 0.6s ease-out 0.1s both;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
@@ -73,3 +102,60 @@
 .auth-footer {
     animation: fadeInUp 0.8s ease-out 0.8s both;
 }
+
+/* Form Validation Error Styles */
+.input-error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.input-error:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #fef2f2;
+    border-radius: 6px;
+    border-left: 3px solid #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+.error-message::before {
+    content: '⚠';
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+/* Success styles for validation */
+.input-success {
+    border-color: #10b981 !important;
+    background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
