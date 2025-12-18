@@ -129,19 +129,7 @@
             return true;
         }
 
-        // Sample volunteers data
-        const sampleVolunteers = [
-            { id: 1, name: "Sarah Chen", email: "sarah@example.com", eventsAttended: 8, hoursVolunteered: 32, points: 2450, lastEvent: "Park Cleanup Drive" },
-            { id: 2, name: "Marcus Johnson", email: "marcus@example.com", eventsAttended: 12, hoursVolunteered: 48, points: 3200, lastEvent: "Winter Relief Supply Drive" },
-            { id: 3, name: "Emily Rodriguez", email: "emily@example.com", eventsAttended: 5, hoursVolunteered: 20, points: 1500, lastEvent: "Community Teaching Workshop" },
-            { id: 4, name: "David Kim", email: "david@example.com", eventsAttended: 15, hoursVolunteered: 60, points: 4100, lastEvent: "Riverside Trail Restoration" },
-            { id: 5, name: "Jessica Miller", email: "jessica@example.com", eventsAttended: 3, hoursVolunteered: 12, points: 900, lastEvent: "Food Bank Sorting" },
-            { id: 6, name: "Michael Brown", email: "michael@example.com", eventsAttended: 7, hoursVolunteered: 28, points: 2100, lastEvent: "Park Cleanup Drive" },
-            { id: 7, name: "Amanda Wilson", email: "amanda@example.com", eventsAttended: 10, hoursVolunteered: 40, points: 2800, lastEvent: "Winter Relief Supply Drive" },
-            { id: 8, name: "James Taylor", email: "james@example.com", eventsAttended: 6, hoursVolunteered: 24, points: 1800, lastEvent: "Community Teaching Workshop" }
-        ];
-
-        // Load volunteers
+        // Load volunteers from API
         async function loadVolunteers() {
             if (!checkOrgAuth()) return;
 
@@ -156,50 +144,40 @@
             try {
                 const response = await fetchOrgWithAuth(`${API_BASE_URL}/org/volunteers`);
                 if (response.ok) {
-                    allVolunteers = await response.json();
-                } else {
-                    allVolunteers = sampleVolunteers;
+                    const data = await response.json();
+                    allVolunteers = data.volunteers || [];
+                    console.log('Loaded volunteers:', allVolunteers);
                 }
             } catch (error) {
-                console.log('Using sample volunteers');
-                allVolunteers = sampleVolunteers;
+                console.error('Error loading volunteers:', error);
+                allVolunteers = [];
             }
 
             updateStats();
             renderVolunteers(allVolunteers);
-            populateEventFilter();
         }
 
         function updateStats() {
             document.getElementById('totalVolunteers').textContent = allVolunteers.length;
-            document.getElementById('activeVolunteers').textContent = allVolunteers.filter(v => v.eventsAttended > 0).length;
+            document.getElementById('activeVolunteers').textContent = allVolunteers.filter(v => (v.eventsCompleted || 0) > 0).length;
             
-            const totalHours = allVolunteers.reduce((sum, v) => sum + v.hoursVolunteered, 0);
+            const totalHours = allVolunteers.reduce((sum, v) => sum + (v.volunteerHours || 0), 0);
             document.getElementById('totalHours').textContent = totalHours;
 
             // Find top performer
-            const topPerformer = allVolunteers.reduce((top, v) => v.points > (top?.points || 0) ? v : top, null);
-            if (topPerformer) {
+            const topPerformer = allVolunteers.reduce((top, v) => (v.volunteerPoints || 0) > (top?.volunteerPoints || 0) ? v : top, null);
+            if (topPerformer && topPerformer.name) {
                 document.getElementById('topVolunteer').textContent = topPerformer.name.split(' ')[0];
+            } else {
+                document.getElementById('topVolunteer').textContent = '-';
             }
-        }
-
-        function populateEventFilter() {
-            const filter = document.getElementById('eventFilter');
-            const events = [...new Set(allVolunteers.map(v => v.lastEvent))];
-            events.forEach(event => {
-                const option = document.createElement('option');
-                option.value = event;
-                option.textContent = event;
-                filter.appendChild(option);
-            });
         }
 
         function searchVolunteers() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allVolunteers.filter(v => 
-                v.name.toLowerCase().includes(query) || 
-                v.email.toLowerCase().includes(query)
+                (v.name || '').toLowerCase().includes(query) || 
+                (v.email || '').toLowerCase().includes(query)
             );
             renderVolunteers(filtered);
         }
@@ -209,13 +187,10 @@
             const query = document.getElementById('searchInput').value.toLowerCase();
             
             let filtered = allVolunteers;
-            if (event !== 'all') {
-                filtered = filtered.filter(v => v.lastEvent === event);
-            }
             if (query) {
                 filtered = filtered.filter(v => 
-                    v.name.toLowerCase().includes(query) || 
-                    v.email.toLowerCase().includes(query)
+                    (v.name || '').toLowerCase().includes(query) || 
+                    (v.email || '').toLowerCase().includes(query)
                 );
             }
             renderVolunteers(filtered);
@@ -224,11 +199,13 @@
         function renderVolunteers(volunteers) {
             const container = document.getElementById('volunteersList');
             
-            if (volunteers.length === 0) {
+            if (!volunteers || volunteers.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1;">
-                        <i data-lucide="users-x" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
-                        <p>No volunteers found</p>
+                        <i data-lucide="users" style="width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">No Volunteers Yet</h3>
+                        <p>When volunteers register for your events, they will appear here.</p>
+                        <p style="margin-top: 1rem; font-size: 0.875rem;">Create an event and share it to start building your volunteer community!</p>
                     </div>
                 `;
                 lucide.createIcons();
@@ -237,14 +214,14 @@
 
             container.innerHTML = volunteers.map(volunteer => `
                 <div class="volunteer-card">
-                    <div class="volunteer-avatar">${volunteer.name.charAt(0)}</div>
+                    <div class="volunteer-avatar">${(volunteer.name || 'U').charAt(0).toUpperCase()}</div>
                     <div class="volunteer-info">
-                        <h4>${volunteer.name}</h4>
-                        <p>${volunteer.email}</p>
+                        <h4>${volunteer.name || 'Unknown'}</h4>
+                        <p>${volunteer.email || 'No email'}</p>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.75rem;">
-                            <span><strong>${volunteer.eventsAttended}</strong> events</span>
-                            <span><strong>${volunteer.hoursVolunteered}</strong> hours</span>
-                            <span><strong>${volunteer.points}</strong> VP</span>
+                            <span><strong>${volunteer.eventsCompleted || 0}</strong> events</span>
+                            <span><strong>${volunteer.volunteerPoints || 0}</strong> VP</span>
+                            <span>${volunteer.city || 'Unknown location'}</span>
                         </div>
                     </div>
                     <div class="volunteer-actions">
@@ -260,7 +237,7 @@
         function viewVolunteer(id) {
             const volunteer = allVolunteers.find(v => v.id === id);
             if (volunteer) {
-                alert(`Volunteer Details:\n\nName: ${volunteer.name}\nEmail: ${volunteer.email}\nEvents: ${volunteer.eventsAttended}\nHours: ${volunteer.hoursVolunteered}\nPoints: ${volunteer.points}\nLast Event: ${volunteer.lastEvent}`);
+                alert(`Volunteer Details:\n\nName: ${volunteer.name}\nEmail: ${volunteer.email}\nCity: ${volunteer.city || 'N/A'}\nPhone: ${volunteer.phone || 'N/A'}\nEvents Completed: ${volunteer.eventsCompleted || 0}\nVolunteer Points: ${volunteer.volunteerPoints || 0}`);
             }
         }
 
