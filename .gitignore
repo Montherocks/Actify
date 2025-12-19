@@ -50,10 +50,13 @@ backend/mvnw.cmd
 !backend/lib/*.jar
 
 # Logs
-*.log
+*.log 
 
 # Mac
 .DS_Store
 
 # NextJS version folder (keep local, don't push to repo)
 nextjs-version/
+
+/frontend/styles/package.json
+/frontend/styles/package-lock.json
