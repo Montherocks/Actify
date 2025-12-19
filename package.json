@@ -1,6 +1,7 @@
 {
   "name": "actify",
   "version": "1.0.0",
+  "main": "index.html",
   "description": "Volunteer Platform - Do Good and Earn Rewards",
   "scripts": {
     "db:init": "node database/init_db.js",
